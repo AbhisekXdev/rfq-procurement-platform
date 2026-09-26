@@ -1,0 +1,16 @@
+{
+  "project": "RFQ Marketplace Full Frontend",
+  "esm": true,
+  "files": 30,
+  "modules": [
+    "React/Vite",
+    "Axios",
+    "React Router",
+    "Socket.IO Client",
+    "Buyer UI",
+    "Supplier UI",
+    "Admin UI",
+    "OTP auth UI",
+    "Realtime chat UI"
+  ]
+}
