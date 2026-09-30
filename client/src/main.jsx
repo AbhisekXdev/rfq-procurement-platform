@@ -5,7 +5,8 @@ import App from "./App.jsx";
 import { AuthProvider } from "./context/AuthContext.jsx";
 import { ToastProvider } from "./context/ToastContext.jsx";
 import { SocketProvider } from "./context/SocketContext.jsx";
-import "./styles.css";
+
+import "./index.css";
 
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>

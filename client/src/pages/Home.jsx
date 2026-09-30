@@ -1,2727 +1,908 @@
-import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import React from "react";
+import { Link, useNavigate } from "react-router-dom";
 import {
-  FiArrowRight,
-  FiCheck,
-  FiCheckCircle,
-  FiChevronDown,
-  FiChevronRight,
-  FiCode,
-  FiDatabase,
-  FiFileText,
-  FiGlobe,
-  FiHelpCircle,
-  FiLock,
-  FiMail,
-  FiMenu,
-  FiMessageCircle,
-  FiPackage,
-  FiPlay,
-  FiSend,
-  FiShield,
-  FiShoppingBag,
-  FiStar,
-  FiTrendingUp,
-  FiUser,
-  FiUsers,
-  FiX,
-  FiZap,
-} from "react-icons/fi";
+  ArrowRight,
+  BarChart3,
+  CheckCircle2,
+  ChevronRight,
+  Globe2,
+  Menu,
+  Package,
+  ShieldCheck,
+  ShoppingCart,
+  Truck,
+  Users,
+  X,
+  Zap,
+} from "lucide-react";
 import { useAuth } from "../context/AuthContext.jsx";
 
 export default function Home() {
   const { user } = useAuth();
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [activeFaq, setActiveFaq] = useState(null);
-  const [scrolled, setScrolled] = useState(false);
+  const navigate = useNavigate();
+  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
-    };
+  const dashboardPath =
+    user?.role === "ADMIN"
+      ? "/admin"
+      : user?.role === "SUPPLIER"
+        ? "/supplier"
+        : "/buyer";
 
-    window.addEventListener("scroll", handleScroll);
-
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, []);
-
-  useEffect(() => {
-    document.documentElement.style.scrollBehavior = "smooth";
-
-    return () => {
-      document.documentElement.style.scrollBehavior = "auto";
-    };
-  }, []);
-
-  const getDashboard = () => {
-    if (!user) return "/register";
-
-    if (user.role === "ADMIN") return "/admin";
-    if (user.role === "SUPPLIER") return "/supplier";
-
-    return "/buyer";
+  const handleDashboard = () => {
+    setMobileMenuOpen(false);
+    navigate(dashboardPath);
   };
 
-  const closeMenu = () => setMenuOpen(false);
-
-  const scrollTo = (id) => {
-    closeMenu();
-
-    setTimeout(() => {
-      document.getElementById(id)?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-    }, 50);
+  const handleLogin = () => {
+    setMobileMenuOpen(false);
+    navigate("/login");
   };
 
-  const faqs = [
-    {
-      question: "What is RFQ Market?",
-      answer:
-        "RFQ Market is a B2B procurement workspace where buyers can create RFQs, suppliers can submit quotations, and both parties can communicate through real-time messaging.",
-    },
-    {
-      question: "Can buyers and suppliers communicate in real time?",
-      answer:
-        "Yes. The platform is designed around real-time buyer-supplier communication using Socket.IO, while conversations and messages are persisted in the database.",
-    },
-    {
-      question: "How does registration work?",
-      answer:
-        "Create an account, select your role, verify your email using OTP, and then access the appropriate buyer or supplier workspace.",
-    },
-    {
-      question: "Is RFQ Market open source?",
-      answer:
-        "The project is presented as an open-source platform and can be adapted for business purposes according to the project's applicable license and deployment terms.",
-    },
-    {
-      question: "Can I contact the developer?",
-      answer:
-        "Yes. Use the Help section below to contact CodePilot.devteam by email for project-related questions, support, or development communication.",
-    },
-  ];
+  const handleRegister = () => {
+    setMobileMenuOpen(false);
+    navigate("/register");
+  };
 
   return (
-    <div style={styles.page}>
-      {/* =========================
-          GLOBAL ANIMATIONS
-      ========================== */}
-      <style>{`
-        * {
-          box-sizing: border-box;
-        }
-
-        html {
-          scroll-behavior: smooth;
-        }
-
-        body {
-          margin: 0;
-          font-family:
-            Inter,
-            ui-sans-serif,
-            system-ui,
-            -apple-system,
-            BlinkMacSystemFont,
-            "Segoe UI",
-            sans-serif;
-          background: #ffffff;
-          color: #111827;
-        }
-
-        a {
-          text-decoration: none;
-        }
-
-        button {
-          font-family: inherit;
-        }
-
-        ::selection {
-          background: #2563eb;
-          color: white;
-        }
-
-        @keyframes float {
-          0%, 100% {
-            transform: translateY(0px);
-          }
-          50% {
-            transform: translateY(-12px);
-          }
-        }
-
-        @keyframes floatSlow {
-          0%, 100% {
-            transform: translateY(0px) translateX(0px);
-          }
-          50% {
-            transform: translateY(-18px) translateX(8px);
-          }
-        }
-
-        @keyframes pulse {
-          0%, 100% {
-            transform: scale(1);
-            opacity: 1;
-          }
-          50% {
-            transform: scale(1.12);
-            opacity: .7;
-          }
-        }
-
-        @keyframes gradientMove {
-          0% {
-            background-position: 0% 50%;
-          }
-          50% {
-            background-position: 100% 50%;
-          }
-          100% {
-            background-position: 0% 50%;
-          }
-        }
-
-        @keyframes fadeUp {
-          from {
-            opacity: 0;
-            transform: translateY(24px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        @keyframes slideRight {
-          from {
-            opacity: 0;
-            transform: translateX(-20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
-        }
-
-        @keyframes notification {
-          0%, 100% {
-            transform: translateY(0);
-          }
-          50% {
-            transform: translateY(-5px);
-          }
-        }
-
-        @keyframes shine {
-          from {
-            transform: translateX(-120%);
-          }
-          to {
-            transform: translateX(120%);
-          }
-        }
-
-        .rfq-fade-up {
-          animation: fadeUp .8s ease both;
-        }
-
-        .rfq-fade-up-delay {
-          animation: fadeUp .8s .15s ease both;
-        }
-
-        .rfq-fade-up-delay-2 {
-          animation: fadeUp .8s .3s ease both;
-        }
-
-        .rfq-card-hover {
-          transition:
-            transform .25s ease,
-            box-shadow .25s ease,
-            border-color .25s ease;
-        }
-
-        .rfq-card-hover:hover {
-          transform: translateY(-7px);
-          box-shadow: 0 25px 60px rgba(15, 23, 42, .10);
-          border-color: #bfdbfe !important;
-        }
-
-        .rfq-button {
-          transition:
-            transform .2s ease,
-            box-shadow .2s ease,
-            background .2s ease;
-        }
-
-        .rfq-button:hover {
-          transform: translateY(-2px);
-        }
-
-        .rfq-button:active {
-          transform: translateY(0);
-        }
-
-        .rfq-nav-link {
-          position: relative;
-        }
-
-        .rfq-nav-link::after {
-          content: "";
-          position: absolute;
-          left: 0;
-          bottom: -7px;
-          width: 0;
-          height: 2px;
-          border-radius: 10px;
-          background: #2563eb;
-          transition: width .25s ease;
-        }
-
-        .rfq-nav-link:hover::after {
-          width: 100%;
-        }
-
-        .rfq-mobile-link {
-          width: 100%;
-          display: flex;
-          align-items: center;
-          padding: 13px 14px;
-          border-radius: 12px;
-          color: #334155;
-          font-weight: 700;
-        }
-
-        .rfq-mobile-link:hover {
-          background: #eff6ff;
-          color: #2563eb;
-        }
-
-        .rfq-shine {
-          overflow: hidden;
-          position: relative;
-        }
-
-        .rfq-shine::after {
-          content: "";
-          position: absolute;
-          inset: 0;
-          width: 40%;
-          background: linear-gradient(
-            90deg,
-            transparent,
-            rgba(255,255,255,.28),
-            transparent
-          );
-          transform: translateX(-120%);
-          animation: shine 4s infinite;
-        }
-
-        @media (max-width: 1050px) {
-          .rfq-desktop-nav {
-            display: none !important;
-          }
-
-          .rfq-mobile-menu-btn {
-            display: flex !important;
-          }
-
-          .rfq-hero-grid {
-            grid-template-columns: 1fr !important;
-          }
-
-          .rfq-hero-copy {
-            max-width: 760px !important;
-            margin: 0 auto;
-            text-align: center;
-          }
-
-          .rfq-hero-actions {
-            justify-content: center !important;
-          }
-
-          .rfq-trust {
-            justify-content: center !important;
-          }
-
-          .rfq-dashboard-preview {
-            max-width: 760px;
-            margin: 0 auto;
-          }
-
-          .rfq-footer-grid {
-            grid-template-columns: 1fr 1fr !important;
-          }
-        }
-
-        @media (max-width: 720px) {
-          .rfq-container {
-            width: min(100% - 32px, 1180px) !important;
-          }
-
-          .rfq-hero {
-            padding-top: 55px !important;
-          }
-
-          .rfq-hero-title {
-            font-size: clamp(42px, 13vw, 68px) !important;
-            line-height: .98 !important;
-          }
-
-          .rfq-hero-description {
-            font-size: 17px !important;
-            line-height: 1.7 !important;
-          }
-
-          .rfq-hero-actions {
-            flex-direction: column !important;
-            align-items: stretch !important;
-          }
-
-          .rfq-hero-actions a {
-            width: 100%;
-            justify-content: center;
-          }
-
-          .rfq-trust {
-            flex-direction: column !important;
-            align-items: center !important;
-            gap: 12px !important;
-          }
-
-          .rfq-dashboard-preview {
-            padding: 10px !important;
-          }
-
-          .rfq-preview-window {
-            min-height: 460px !important;
-          }
-
-          .rfq-preview-content {
-            grid-template-columns: 58px 1fr !important;
-          }
-
-          .rfq-preview-sidebar-text {
-            display: none;
-          }
-
-          .rfq-preview-sidebar {
-            padding: 14px 9px !important;
-          }
-
-          .rfq-metric-grid {
-            grid-template-columns: 1fr 1fr !important;
-          }
-
-          .rfq-features-grid {
-            grid-template-columns: 1fr !important;
-          }
-
-          .rfq-steps {
-            grid-template-columns: 1fr !important;
-          }
-
-          .rfq-role-grid {
-            grid-template-columns: 1fr !important;
-          }
-
-          .rfq-security-grid {
-            grid-template-columns: 1fr !important;
-          }
-
-          .rfq-footer-grid {
-            grid-template-columns: 1fr !important;
-          }
-
-          .rfq-footer-bottom {
-            flex-direction: column !important;
-            align-items: flex-start !important;
-          }
-
-          .rfq-section {
-            padding: 75px 0 !important;
-          }
-
-          .rfq-section-title {
-            font-size: 36px !important;
-          }
-
-          .rfq-nav {
-            height: 72px !important;
-          }
-
-          .rfq-brand-subtitle {
-            display: none;
-          }
-        }
-
-        @media (max-width: 420px) {
-          .rfq-brand-name {
-            font-size: 16px !important;
-          }
-
-          .rfq-hero-title {
-            font-size: 42px !important;
-          }
-
-          .rfq-container {
-            width: min(100% - 24px, 1180px) !important;
-          }
-
-          .rfq-metric-grid {
-            grid-template-columns: 1fr !important;
-          }
-        }
-      `}</style>
-
-      {/* =========================
-          NAVBAR
-      ========================== */}
-      <header
-        style={{
-          ...styles.navbar,
-          ...(scrolled ? styles.navbarScrolled : {}),
-        }}
-        className="rfq-nav"
-      >
-        <div className="rfq-container" style={styles.navInner}>
-          <Link to="/" style={styles.brand} onClick={closeMenu}>
-            <div style={styles.brandLogo}>
-              R
+    <div className="min-h-screen w-full overflow-x-hidden bg-slate-50 text-slate-900">
+      {/* NAVBAR */}
+      <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/95 backdrop-blur-xl">
+        <div className="mx-auto flex h-16 w-full max-w-[1800px] items-center justify-between px-4 sm:px-6 lg:px-8 2xl:px-12">
+          {/* Logo */}
+          <Link
+            to="/"
+            onClick={() => setMobileMenuOpen(false)}
+            className="flex min-w-0 items-center gap-2"
+          >
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-lg shadow-blue-600/20">
+              <ShoppingCart size={19} />
             </div>
 
-            <div>
-              <div
-                className="rfq-brand-name"
-                style={styles.brandName}
-              >
-                RFQ Market
+            <div className="min-w-0">
+              <div className="truncate text-sm font-extrabold tracking-tight sm:text-base">
+                RFQ Marketplace
               </div>
-
-              <div
-                className="rfq-brand-subtitle"
-                style={styles.brandSubtitle}
-              >
-                B2B PROCUREMENT
+              <div className="hidden text-[10px] font-medium text-slate-500 sm:block cursor-pointer">
+               <navigate to="/"> B2B Procurement Platform</navigate>
               </div>
             </div>
           </Link>
 
-          <nav
-            className="rfq-desktop-nav"
-            style={styles.desktopNav}
-          >
-            <button
-              style={styles.navButton}
-              className="rfq-nav-link"
-              onClick={() => scrollTo("features")}
+          {/* Desktop Navigation */}
+          <nav className="hidden items-center gap-1 md:flex">
+            <a
+              href="#features"
+              className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
             >
               Features
-            </button>
+            </a>
 
-            <button
-              style={styles.navButton}
-              className="rfq-nav-link"
-              onClick={() => scrollTo("how-it-works")}
+            <a
+              href="#how-it-works"
+              className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
             >
               How it works
-            </button>
+            </a>
 
-            <button
-              style={styles.navButton}
-              className="rfq-nav-link"
-              onClick={() => scrollTo("security")}
+            <a
+              href="#benefits"
+              className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
             >
-              Security
-            </button>
-
-            <button
-              style={styles.navButton}
-              className="rfq-nav-link"
-              onClick={() => scrollTo("help")}
-            >
-              Help
-            </button>
-
-            <Link
-              to={user ? getDashboard() : "/login"}
-              style={styles.navSignIn}
-              className="rfq-button"
-            >
-              {user ? "Workspace" : "Sign in"}
-            </Link>
-
-            <Link
-              to={user ? getDashboard() : "/register"}
-              style={styles.primaryButtonSmall}
-              className="rfq-button rfq-shine"
-            >
-              {user ? "Open workspace" : "Get started"}
-              <FiArrowRight size={17} />
-            </Link>
+              Benefits
+            </a>
           </nav>
 
+          {/* Desktop Actions */}
+          <div className="hidden items-center gap-2 md:flex">
+            {user ? (
+              <button
+                type="button"
+                onClick={handleDashboard}
+                className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700"
+              >
+                Dashboard
+                <ArrowRight size={16} />
+              </button>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={handleLogin}
+                  className="rounded-xl px-4 py-2.5 text-sm font-bold text-slate-700 transition hover:bg-slate-100"
+                >
+                  Login
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleRegister}
+                  className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700"
+                >
+                  Get Started
+                  <ArrowRight size={16} />
+                </button>
+              </>
+            )}
+          </div>
+
+          {/* Mobile Menu Button */}
           <button
-            className="rfq-mobile-menu-btn"
-            onClick={() => setMenuOpen((v) => !v)}
-            style={styles.mobileMenuButton}
-            aria-label="Open menu"
+            type="button"
+            aria-label="Toggle navigation menu"
+            onClick={() => setMobileMenuOpen((prev) => !prev)}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 transition hover:bg-slate-50 md:hidden"
           >
-            {menuOpen ? <FiX size={25} /> : <FiMenu size={25} />}
+            {mobileMenuOpen ? <X size={21} /> : <Menu size={21} />}
           </button>
         </div>
 
-        {menuOpen && (
-          <div style={styles.mobileMenu}>
-            <button
-              className="rfq-mobile-link"
-              onClick={() => scrollTo("features")}
-            >
-              Features
-            </button>
+        {/* Mobile Navigation */}
+        {mobileMenuOpen && (
+          <div className="border-t border-slate-200 bg-white md:hidden">
+            <div className="mx-auto w-full max-w-[1800px] space-y-1 px-4 py-4 sm:px-6">
+              <a
+                href="#features"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-100"
+              >
+                Features
+              </a>
 
-            <button
-              className="rfq-mobile-link"
-              onClick={() => scrollTo("how-it-works")}
-            >
-              How it works
-            </button>
+              <a
+                href="#how-it-works"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-100"
+              >
+                How it works
+              </a>
 
-            <button
-              className="rfq-mobile-link"
-              onClick={() => scrollTo("security")}
-            >
-              Security
-            </button>
+              <a
+                href="#benefits"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-100"
+              >
+                Benefits
+              </a>
 
-            <button
-              className="rfq-mobile-link"
-              onClick={() => scrollTo("registration")}
-            >
-              Registration
-            </button>
+              <div className="mt-3 grid grid-cols-1 gap-2 border-t border-slate-100 pt-3">
+                {user ? (
+                  <button
+                    type="button"
+                    onClick={handleDashboard}
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white"
+                  >
+                    Dashboard
+                    <ArrowRight size={16} />
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      onClick={handleLogin}
+                      className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm font-bold text-slate-700"
+                    >
+                      Login
+                    </button>
 
-            <button
-              className="rfq-mobile-link"
-              onClick={() => scrollTo("help")}
-            >
-              Help & support
-            </button>
-
-            <Link
-              to={user ? getDashboard() : "/login"}
-              className="rfq-mobile-link"
-              onClick={closeMenu}
-            >
-              {user ? "Open workspace" : "Sign in"}
-            </Link>
-
-            <Link
-              to={user ? getDashboard() : "/register"}
-              style={{
-                ...styles.primaryButton,
-                width: "100%",
-                justifyContent: "center",
-              }}
-              className="rfq-button"
-              onClick={closeMenu}
-            >
-              {user ? "Open workspace" : "Get started"}
-              <FiArrowRight />
-            </Link>
+                    <button
+                      type="button"
+                      onClick={handleRegister}
+                      className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white"
+                    >
+                      Get Started
+                      <ArrowRight size={16} />
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
           </div>
         )}
       </header>
 
-      {/* =========================
-          HERO
-      ========================== */}
+      {/* HERO */}
       <main>
-        <section style={styles.hero} className="rfq-hero">
-          <div style={styles.heroGlowOne} />
-          <div style={styles.heroGlowTwo} />
+        <section className="relative overflow-hidden">
+          <div className="absolute inset-0 -z-10 bg-gradient-to-br from-blue-50 via-white to-indigo-50" />
 
-          <div
-            className="rfq-container rfq-hero-grid"
-            style={styles.heroGrid}
-          >
-            <div
-              className="rfq-hero-copy rfq-fade-up"
-              style={styles.heroCopy}
-            >
-              <div style={styles.eyebrow}>
-                <span style={styles.eyebrowDot} />
-                MODERN B2B PROCUREMENT PLATFORM
+          <div className="mx-auto grid w-full max-w-[1800px] items-center gap-10 px-4 py-14 sm:px-6 sm:py-20 lg:grid-cols-2 lg:px-8 lg:py-24 2xl:px-12 2xl:py-32">
+            {/* Hero Content */}
+            <div className="max-w-3xl">
+              <div className="mb-5 inline-flex max-w-full items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-700 sm:text-sm">
+                <Zap size={14} />
+                <span className="truncate">
+                  Smarter B2B Procurement
+                </span>
               </div>
 
-              <h1
-                className="rfq-hero-title"
-                style={styles.heroTitle}
-              >
-                Smarter sourcing.
-                <br />
-                <span style={styles.heroGradientText}>
-                  Faster decisions.
+              <h1 className="text-4xl font-black leading-[1.05] tracking-tight text-slate-950 sm:text-5xl lg:text-6xl xl:text-7xl">
+                Connect Buyers & Suppliers
+                <span className="block bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                  Faster & Smarter.
                 </span>
               </h1>
 
-              <p
-                className="rfq-hero-description"
-                style={styles.heroDescription}
-              >
-                RFQ Market brings buyers and suppliers together in
-                one streamlined procurement workspace — from RFQ
-                creation to quotation comparison and real-time
-                communication.
+              <p className="mt-6 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg sm:leading-8 lg:text-xl">
+                A modern B2B procurement platform that helps businesses
+                create RFQs, receive competitive quotations, compare
+                suppliers, and manage procurement from one place.
               </p>
 
-              <div
-                className="rfq-hero-actions"
-                style={styles.heroActions}
-              >
-                <Link
-                  to={user ? getDashboard() : "/register"}
-                  style={styles.primaryButton}
-                  className="rfq-button rfq-shine"
-                >
-                  {user ? "Open workspace" : "Start for free"}
-                  <FiArrowRight size={19} />
-                </Link>
-
-                <button
-                  onClick={() => scrollTo("how-it-works")}
-                  style={styles.secondaryButton}
-                  className="rfq-button"
-                >
-                  <span style={styles.playCircle}>
-                    <FiPlay size={13} />
-                  </span>
-                  See how it works
-                </button>
-              </div>
-
-              <div
-                className="rfq-trust"
-                style={styles.trustRow}
-              >
-                <span>
-                  <FiCheckCircle />
-                  Email verification
-                </span>
-
-                <span>
-                  <FiShield />
-                  Role-based access
-                </span>
-
-                <span>
-                  <FiMessageCircle />
-                  Real-time chat
-                </span>
-              </div>
-            </div>
-
-            {/* HERO VISUAL */}
-            <div
-              className="rfq-dashboard-preview rfq-fade-up-delay"
-              style={styles.dashboardPreview}
-            >
-              <div
-                className="rfq-preview-window"
-                style={styles.previewWindow}
-              >
-                <div style={styles.previewTopbar}>
-                  <div style={styles.browserDots}>
-                    <i />
-                    <i />
-                    <i />
-                  </div>
-
-                  <div style={styles.previewTitle}>
-                    RFQ Workspace
-                  </div>
-
-                  <div style={styles.liveBadge}>
-                    <span />
-                    Live
-                  </div>
-                </div>
-
-                <div
-                  className="rfq-preview-content"
-                  style={styles.previewContent}
-                >
-                  <aside
-                    className="rfq-preview-sidebar"
-                    style={styles.previewSidebar}
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                {user ? (
+                  <button
+                    type="button"
+                    onClick={handleDashboard}
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3.5 text-sm font-bold text-white shadow-xl shadow-blue-600/20 transition hover:bg-blue-700 sm:w-auto"
                   >
-                    <div style={styles.previewLogo}>R</div>
-
-                    {[
-                      <FiTrendingUp />,
-                      <FiFileText />,
-                      <FiShoppingBag />,
-                      <FiMessageCircle />,
-                      <FiUsers />,
-                    ].map((icon, index) => (
-                      <div
-                        key={index}
-                        style={{
-                          ...styles.previewSideIcon,
-                          ...(index === 0
-                            ? styles.previewSideIconActive
-                            : {}),
-                        }}
-                      >
-                        {icon}
-                      </div>
-                    ))}
-                  </aside>
-
-                  <div style={styles.previewMain}>
-                    <div style={styles.previewHeader}>
-                      <div>
-                        <div style={styles.previewSmall}>
-                          OVERVIEW
-                        </div>
-
-                        <h3 style={styles.previewHeading}>
-                          Procurement dashboard
-                        </h3>
-                      </div>
-
-                      <div style={styles.previewAvatar}>
-                        B
-                      </div>
-                    </div>
-
-                    <div
-                      className="rfq-metric-grid"
-                      style={styles.metricGrid}
-                    >
-                      <PreviewMetric
-                        icon={<FiFileText />}
-                        value="24"
-                        label="Active RFQs"
-                      />
-
-                      <PreviewMetric
-                        icon={<FiUsers />}
-                        value="128"
-                        label="Suppliers"
-                      />
-
-                      <PreviewMetric
-                        icon={<FiTrendingUp />}
-                        value="64"
-                        label="Quotations"
-                      />
-                    </div>
-
-                    <div style={styles.chartCard}>
-                      <div style={styles.chartHeader}>
-                        <div>
-                          <strong>Quotation activity</strong>
-                          <small>Last 7 days</small>
-                        </div>
-
-                        <FiTrendingUp
-                          color="#2563eb"
-                          size={20}
-                        />
-                      </div>
-
-                      <div style={styles.chart}>
-                        {[35, 50, 42, 68, 58, 80, 94].map(
-                          (height, index) => (
-                            <div
-                              key={index}
-                              style={{
-                                ...styles.chartBar,
-                                height: `${height}%`,
-                                animationDelay: `${index * 100}ms`,
-                              }}
-                            />
-                          )
-                        )}
-                      </div>
-                    </div>
-
-                    <div style={styles.activityCard}>
-                      <div style={styles.activityIcon}>
-                        <FiMessageCircle />
-                      </div>
-
-                      <div style={{ flex: 1 }}>
-                        <strong>Live conversation</strong>
-                        <small>
-                          Supplier is online and ready to discuss
-                          quotation.
-                        </small>
-                      </div>
-
-                      <span style={styles.onlineDot} />
-                    </div>
-                  </div>
-                </div>
-
-                <div style={styles.floatingQuotation}>
-                  <div style={styles.successIcon}>
-                    <FiCheck />
-                  </div>
-
-                  <div>
-                    <strong>Quotation received</strong>
-                    <small>Just now</small>
-                  </div>
-                </div>
-
-                <div style={styles.floatingChat}>
-                  <FiMessageCircle />
-                  <span>Supplier replied</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* =========================
-            FEATURES
-        ========================== */}
-        <section
-          id="features"
-          style={styles.section}
-          className="rfq-section"
-        >
-          <div className="rfq-container">
-            <SectionHeading
-              eyebrow="ONE PROCUREMENT WORKFLOW"
-              title="Everything you need to manage RFQs"
-              description="Designed to keep procurement teams, buyers and suppliers connected from requirement to quotation."
-            />
-
-            <div
-              className="rfq-features-grid"
-              style={styles.featureGrid}
-            >
-              <FeatureCard
-                icon={<FiFileText />}
-                number="01"
-                title="Create RFQs"
-                text="Publish structured requirements with quantities, deadlines and procurement details."
-              />
-
-              <FeatureCard
-                icon={<FiShoppingBag />}
-                number="02"
-                title="Receive quotations"
-                text="Suppliers can review RFQs and submit competitive quotations directly through the platform."
-              />
-
-              <FeatureCard
-                icon={<FiTrendingUp />}
-                number="03"
-                title="Compare offers"
-                text="Review quotation information and make procurement decisions using organized data."
-              />
-
-              <FeatureCard
-                icon={<FiMessageCircle />}
-                number="04"
-                title="Chat in real time"
-                text="Buyers and suppliers can communicate through persistent real-time conversations."
-              />
-
-              <FeatureCard
-                icon={<FiBellIcon />}
-                number="05"
-                title="Notifications"
-                text="Keep users informed about quotations, messages, RFQs and important workspace activity."
-              />
-
-              <FeatureCard
-                icon={<FiShield />}
-                number="06"
-                title="Protected workspace"
-                text="Role-based access and authenticated APIs keep buyer, supplier and admin areas separated."
-              />
-            </div>
-          </div>
-        </section>
-
-        {/* =========================
-            HOW IT WORKS
-        ========================== */}
-        <section
-          id="how-it-works"
-          style={styles.darkSection}
-          className="rfq-section"
-        >
-          <div className="rfq-container">
-            <SectionHeading
-              dark
-              eyebrow="SIMPLE WORKFLOW"
-              title="How RFQ Market works"
-              description="A straightforward procurement flow for both sides of the marketplace."
-            />
-
-            <div
-              className="rfq-steps"
-              style={styles.stepsGrid}
-            >
-              <StepCard
-                number="01"
-                icon={<FiEditIcon />}
-                title="Buyer creates an RFQ"
-                text="Add the product, quantity, specifications and required delivery information."
-              />
-
-              <StepCard
-                number="02"
-                icon={<FiSend />}
-                title="Supplier reviews"
-                text="Suppliers discover available RFQs and review buyer requirements."
-              />
-
-              <StepCard
-                number="03"
-                icon={<FiFileText />}
-                title="Supplier sends quotation"
-                text="Submit pricing, quantity, delivery timeline and other quotation details."
-              />
-
-              <StepCard
-                number="04"
-                icon={<FiMessageCircle />}
-                title="Discuss & decide"
-                text="Use real-time chat to clarify requirements and continue procurement communication."
-              />
-            </div>
-          </div>
-        </section>
-
-        {/* =========================
-            BUYER / SUPPLIER
-        ========================== */}
-        <section
-          style={styles.section}
-          className="rfq-section"
-        >
-          <div className="rfq-container">
-            <SectionHeading
-              eyebrow="FOR EVERY PARTICIPANT"
-              title="Built for buyers and suppliers"
-              description="Each role gets a focused workspace with the tools needed for its procurement workflow."
-            />
-
-            <div
-              className="rfq-role-grid"
-              style={styles.roleGrid}
-            >
-              <RoleCard
-                type="BUYER"
-                icon={<FiUser />}
-                title="Buyer workspace"
-                description="Create RFQs, manage procurement requirements, review supplier quotations and communicate with suppliers."
-                items={[
-                  "Create and manage RFQs",
-                  "Review supplier quotations",
-                  "Real-time supplier messaging",
-                  "Track procurement activity",
-                  "Manage notifications",
-                ]}
-                button="Create buyer account"
-                link="/register"
-              />
-
-              <RoleCard
-                type="SUPPLIER"
-                icon={<FiShoppingBag />}
-                title="Supplier workspace"
-                description="Discover relevant RFQs, submit quotations, communicate with buyers and manage responses."
-                items={[
-                  "Browse available RFQs",
-                  "Submit quotations",
-                  "Communicate with buyers",
-                  "Track quotation activity",
-                  "Receive real-time notifications",
-                ]}
-                button="Join as supplier"
-                link="/register"
-              />
-            </div>
-          </div>
-        </section>
-
-        {/* =========================
-            REGISTRATION
-        ========================== */}
-        <section
-          id="registration"
-          style={styles.registrationSection}
-          className="rfq-section"
-        >
-          <div className="rfq-container">
-            <div style={styles.registrationBox}>
-              <div style={styles.registrationLeft}>
-                <div style={styles.eyebrow}>
-                  <span style={styles.eyebrowDot} />
-                  QUICK REGISTRATION
-                </div>
-
-                <h2 style={styles.registrationTitle}>
-                  Start your procurement workspace in minutes.
-                </h2>
-
-                <p style={styles.registrationDescription}>
-                  Create your account, verify your email and start
-                  managing your RFQ workflow.
-                </p>
-
-                <Link
-                  to={user ? getDashboard() : "/register"}
-                  style={styles.primaryButton}
-                  className="rfq-button rfq-shine"
-                >
-                  {user ? "Open workspace" : "Create account"}
-                  <FiArrowRight />
-                </Link>
-              </div>
-
-              <div style={styles.registrationSteps}>
-                <RegistrationStep
-                  number="1"
-                  title="Create account"
-                  text="Enter your basic account details."
-                />
-
-                <RegistrationStep
-                  number="2"
-                  title="Choose your role"
-                  text="Register as a buyer or supplier."
-                />
-
-                <RegistrationStep
-                  number="3"
-                  title="Verify email"
-                  text="Complete OTP verification."
-                />
-
-                <RegistrationStep
-                  number="4"
-                  title="Start working"
-                  text="Access your personalized workspace."
-                />
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* =========================
-            SECURITY
-        ========================== */}
-        <section
-          id="security"
-          style={styles.section}
-          className="rfq-section"
-        >
-          <div className="rfq-container">
-            <SectionHeading
-              eyebrow="SECURITY & ACCESS"
-              title="Designed with secure access in mind"
-              description="Authentication and role separation are part of the platform architecture."
-            />
-
-            <div
-              className="rfq-security-grid"
-              style={styles.securityGrid}
-            >
-              <SecurityCard
-                icon={<FiLock />}
-                title="Authenticated APIs"
-                text="Protected API endpoints help keep workspace data accessible only to authorized users."
-              />
-
-              <SecurityCard
-                icon={<FiShield />}
-                title="Role-based access"
-                text="Buyer, supplier and admin experiences are separated through role-aware access."
-              />
-
-              <SecurityCard
-                icon={<FiDatabase />}
-                title="Persistent data"
-                text="RFQs, quotations, conversations and messages are stored for continued workflow access."
-              />
-
-              <SecurityCard
-                icon={<FiZap />}
-                title="Real-time communication"
-                text="Socket-based communication enables live buyer and supplier messaging."
-              />
-            </div>
-          </div>
-        </section>
-
-        {/* =========================
-            FAQ / HELP
-        ========================== */}
-        <section
-          id="help"
-          style={styles.helpSection}
-          className="rfq-section"
-        >
-          <div className="rfq-container">
-            <div style={styles.helpHeader}>
-              <div>
-                <div style={styles.eyebrow}>
-                  <span style={styles.eyebrowDot} />
-                  HELP & SUPPORT
-                </div>
-
-                <h2
-                  className="rfq-section-title"
-                  style={styles.sectionTitle}
-                >
-                  Need help?
-                </h2>
-
-                <p style={styles.sectionDescription}>
-                  Find answers below or contact the developer team
-                  directly.
-                </p>
-              </div>
-
-              <a
-                href="mailto:developer@codepilot.devteam"
-                style={styles.emailButton}
-                className="rfq-button"
-              >
-                <FiMail />
-                Email developer
-              </a>
-            </div>
-
-            <div style={styles.faqList}>
-              {faqs.map((faq, index) => {
-                const open = activeFaq === index;
-
-                return (
-                  <div
-                    key={faq.question}
-                    style={{
-                      ...styles.faqItem,
-                      ...(open ? styles.faqItemOpen : {}),
-                    }}
-                  >
+                    Open Dashboard
+                    <ArrowRight size={18} />
+                  </button>
+                ) : (
+                  <>
                     <button
-                      onClick={() =>
-                        setActiveFaq(open ? null : index)
-                      }
-                      style={styles.faqQuestion}
+                      type="button"
+                      onClick={handleRegister}
+                      className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3.5 text-sm font-bold text-white shadow-xl shadow-blue-600/20 transition hover:bg-blue-700 sm:w-auto"
                     >
-                      <span>
-                        <FiHelpCircle />
-                        {faq.question}
-                      </span>
-
-                      <FiChevronDown
-                        style={{
-                          transform: open
-                            ? "rotate(180deg)"
-                            : "rotate(0deg)",
-                          transition: "transform .25s ease",
-                        }}
-                      />
+                      Start Procurement
+                      <ArrowRight size={18} />
                     </button>
 
-                    {open && (
-                      <div style={styles.faqAnswer}>
-                        {faq.answer}
-                      </div>
-                    )}
+                    <button
+                      type="button"
+                      onClick={handleLogin}
+                      className="inline-flex w-full items-center justify-center rounded-xl border border-slate-300 bg-white px-6 py-3.5 text-sm font-bold text-slate-700 transition hover:bg-slate-50 sm:w-auto"
+                    >
+                      Sign In
+                    </button>
+                  </>
+                )}
+              </div>
+
+              {/* Trust Points */}
+              <div className="mt-8 grid grid-cols-1 gap-3 text-sm text-slate-600 min-[420px]:grid-cols-2">
+                {[
+                  "Verified business users",
+                  "Competitive quotations",
+                  "Secure procurement",
+                  "Real-time communication",
+                ].map((item) => (
+                  <div key={item} className="flex items-center gap-2">
+                    <CheckCircle2
+                      size={17}
+                      className="shrink-0 text-emerald-600"
+                    />
+                    <span>{item}</span>
                   </div>
-                );
-              })}
+                ))}
+              </div>
             </div>
 
-            <div style={styles.contactCard}>
-              <div style={styles.contactIcon}>
-                <FiCode />
+            {/* Hero Visual */}
+            <div className="relative mx-auto w-full max-w-2xl lg:max-w-none">
+              <div className="rounded-3xl border border-slate-200 bg-white p-3 shadow-2xl shadow-slate-900/10 sm:p-5">
+                <div className="rounded-2xl bg-slate-950 p-4 sm:p-6">
+                  <div className="mb-5 flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-medium text-slate-400">
+                        Procurement Overview
+                      </p>
+                      <p className="mt-1 text-lg font-bold text-white sm:text-xl">
+                        Business Dashboard
+                      </p>
+                    </div>
+
+                    <div className="rounded-xl bg-emerald-500/10 px-3 py-2 text-xs font-bold text-emerald-400">
+                      Live
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    {[
+                      ["24", "Open RFQs"],
+                      ["128", "Suppliers"],
+                      ["56", "Quotations"],
+                      ["₹8.4L", "Savings"],
+                    ].map(([value, label]) => (
+                      <div
+                        key={label}
+                        className="min-w-0 rounded-xl bg-white/5 p-3"
+                      >
+                        <p className="truncate text-lg font-black text-white sm:text-xl">
+                          {value}
+                        </p>
+                        <p className="mt-1 truncate text-[10px] text-slate-400 sm:text-xs">
+                          {label}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-4 space-y-3">
+                    {[1, 2, 3].map((item) => (
+                      <div
+                        key={item}
+                        className="flex items-center gap-3 rounded-xl bg-white/5 p-3"
+                      >
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-500/10 text-blue-400">
+                          <Package size={17} />
+                        </div>
+
+                        <div className="min-w-0 flex-1">
+                          <div className="h-2 w-2/3 rounded-full bg-white/20" />
+                          <div className="mt-2 h-2 w-1/2 rounded-full bg-white/10" />
+                        </div>
+
+                        <div className="h-7 w-14 shrink-0 rounded-lg bg-emerald-500/10" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
-
-              <div style={{ flex: 1 }}>
-                <strong>Developed by CodePilot.devteam</strong>
-
-                <p>
-                  For project support, implementation questions,
-                  improvements or development communication, contact
-                  the developer team.
-                </p>
-              </div>
-
-              <a
-                href="mailto:developer@codepilot.devteam"
-                style={styles.contactButton}
-                className="rfq-button"
-              >
-                <FiMail />
-                Contact developer
-              </a>
             </div>
           </div>
         </section>
-      </main>
 
-      {/* =========================
-          FOOTER
-      ========================== */}
-      <footer style={styles.footer}>
-        <div className="rfq-container">
-          <div
-            className="rfq-footer-grid"
-            style={styles.footerGrid}
-          >
-            <div style={styles.footerBrandColumn}>
-              <Link to="/" style={styles.footerBrand}>
-                <div style={styles.footerLogo}>R</div>
-
-                <div>
-                  <strong>RFQ Market</strong>
-                  <span>B2B PROCUREMENT</span>
-                </div>
-              </Link>
-
-              <p style={styles.footerDescription}>
-                A modern open-source B2B procurement platform for
-                managing RFQs, quotations and buyer-supplier
-                communication.
+        {/* FEATURES */}
+        <section
+          id="features"
+          className="scroll-mt-20 bg-white py-16 sm:py-20 lg:py-24"
+        >
+          <div className="mx-auto w-full max-w-[1800px] px-4 sm:px-6 lg:px-8 2xl:px-12">
+            <div className="mx-auto max-w-3xl text-center">
+              <p className="text-sm font-bold uppercase tracking-wider text-blue-600">
+                Platform Features
               </p>
 
-              <div style={styles.openSourceBadge}>
-                <FiCode />
-                Open source
-              </div>
+              <h2 className="mt-3 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl lg:text-5xl">
+                Everything you need for modern procurement
+              </h2>
+
+              <p className="mt-4 text-base leading-7 text-slate-600 sm:text-lg">
+                Manage the complete RFQ and quotation lifecycle through a
+                single procurement platform.
+              </p>
             </div>
 
-            <FooterColumn
-              title="Platform"
-              links={[
-                ["Features", () => scrollTo("features")],
-                ["How it works", () => scrollTo("how-it-works")],
-                ["Security", () => scrollTo("security")],
-                ["Registration", () => scrollTo("registration")],
-              ]}
-            />
+            <div className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+              {[
+                {
+                  icon: ShoppingCart,
+                  title: "RFQ Management",
+                  text: "Create and manage procurement requests efficiently.",
+                },
+                {
+                  icon: Users,
+                  title: "Supplier Network",
+                  text: "Connect with verified suppliers and businesses.",
+                },
+                {
+                  icon: BarChart3,
+                  title: "Quotation Comparison",
+                  text: "Compare supplier quotations in one place.",
+                },
+                {
+                  icon: ShieldCheck,
+                  title: "Secure Platform",
+                  text: "Role-based access and secure authentication.",
+                },
+                {
+                  icon: Truck,
+                  title: "Order Management",
+                  text: "Move from quotation to procurement smoothly.",
+                },
+                {
+                  icon: Globe2,
+                  title: "Business Network",
+                  text: "Build long-term B2B supplier relationships.",
+                },
+              ].map(({ icon: Icon, title, text }) => (
+                <div
+                  key={title}
+                  className="group rounded-2xl border border-slate-200 bg-slate-50 p-5 transition hover:-translate-y-1 hover:border-blue-200 hover:bg-white hover:shadow-xl"
+                >
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-100 text-blue-600 transition group-hover:bg-blue-600 group-hover:text-white">
+                    <Icon size={21} />
+                  </div>
 
-            <FooterColumn
-              title="Account"
-              links={[
-                ["Sign in", () => (window.location.href = "/login")],
-                [
-                  "Register",
-                  () => (window.location.href = "/register"),
-                ],
-                [
-                  "Workspace",
-                  () =>
-                    (window.location.href = getDashboard()),
-                ],
-                ["Help", () => scrollTo("help")],
-              ]}
-            />
+                  <h3 className="mt-5 text-base font-extrabold text-slate-950">
+                    {title}
+                  </h3>
 
-            <div>
-              <h4 style={styles.footerHeading}>
-                Developer
-              </h4>
-
-              <div style={styles.developerName}>
-                Developed by <strong>CodePilot.devteam</strong>
-              </div>
-
-              <a
-                href="mailto:developer@codepilot.devteam"
-                style={styles.footerLink}
-              >
-                <FiMail />
-                Email developer
-              </a>
-
-              <button
-                onClick={() => scrollTo("help")}
-                style={styles.footerLinkButton}
-              >
-                <FiHelpCircle />
-                Project support
-              </button>
-
-              <div style={styles.footerTech}>
-                <FiCode />
-                React · Node.js · MySQL · Socket.IO
-              </div>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">
+                    {text}
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
+        </section>
 
-          <div
-            className="rfq-footer-bottom"
-            style={styles.footerBottom}
-          >
-            <span>
-              © {new Date().getFullYear()} RFQ Market. All rights
-              reserved.
-            </span>
+        {/* HOW IT WORKS */}
+       <section
+  id="how-it-works"
+  className="scroll-mt-20 bg-slate-50 py-16 sm:py-20 lg:py-24"
+>
+  <div className="mx-auto w-full max-w-[1800px] px-4 sm:px-6 lg:px-8 2xl:px-12">
 
-            <span style={styles.footerOpenSource}>
-              Open source · Available for business use
-            </span>
-
-            <span>
-              Developed by{" "}
-              <strong>CodePilot.devteam</strong>
-            </span>
-          </div>
-        </div>
-      </footer>
-    </div>
-  );
-}
-
-/* =========================================================
-   COMPONENTS
-========================================================= */
-
-function SectionHeading({
-  eyebrow,
-  title,
-  description,
-  dark = false,
-}) {
-  return (
-    <div style={styles.sectionHeading}>
-      <div
-        style={{
-          ...styles.eyebrow,
-          ...(dark ? styles.darkEyebrow : {}),
-        }}
-      >
-        <span
-          style={{
-            ...styles.eyebrowDot,
-            ...(dark ? { background: "#60a5fa" } : {}),
-          }}
-        />
-        {eyebrow}
+    {/* Section Header */}
+    <div className="mx-auto max-w-3xl text-center">
+      <div className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-3.5 py-2 text-xs font-bold uppercase tracking-wider text-blue-700">
+        <span className="h-1.5 w-1.5 rounded-full bg-blue-600" />
+        How It Works
       </div>
 
-      <h2
-        className="rfq-section-title"
-        style={{
-          ...styles.sectionTitle,
-          ...(dark ? styles.darkSectionTitle : {}),
-        }}
-      >
-        {title}
+      <h2 className="mt-5 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl lg:text-5xl">
+        Procurement made
+        <span className="text-blue-600"> simple</span>
       </h2>
 
-      <p
-        style={{
-          ...styles.sectionDescription,
-          ...(dark ? styles.darkSectionDescription : {}),
-        }}
-      >
-        {description}
+      <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">
+        From creating an RFQ to receiving supplier quotations,
+        manage your procurement workflow in a few simple steps.
       </p>
     </div>
-  );
-}
 
-function FeatureCard({ icon, number, title, text }) {
-  return (
-    <div
-      className="rfq-card-hover"
-      style={styles.featureCard}
-    >
-      <div style={styles.featureTop}>
-        <div style={styles.featureIcon}>{icon}</div>
-        <span style={styles.featureNumber}>{number}</span>
-      </div>
+    {/* Steps */}
+    <div className="relative mx-auto mt-12 max-w-6xl lg:mt-16">
 
-      <h3 style={styles.featureTitle}>{title}</h3>
+      {/* Connecting line - desktop */}
+      <div className="absolute left-[16.66%] right-[16.66%] top-10 hidden h-px bg-gradient-to-r from-blue-200 via-indigo-300 to-blue-200 md:block" />
 
-      <p style={styles.featureText}>{text}</p>
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3 md:gap-8">
+        {[
+          {
+            number: "01",
+            title: "Create an RFQ",
+            text: "Publish your requirements, quantities, specifications and deadlines.",
+          },
+          {
+            number: "02",
+            title: "Receive Quotations",
+            text: "Suppliers review your RFQ and submit competitive quotations.",
+          },
+          {
+            number: "03",
+            title: "Compare & Procure",
+            text: "Compare offers and continue with the supplier that meets your requirements.",
+          },
+        ].map((step, index) => (
+          <div key={step.number} className="group relative">
 
-      <div style={styles.featureArrow}>
-        <FiArrowRight />
-      </div>
-    </div>
-  );
-}
+            {/* Step number */}
+            <div className="relative z-10 mx-auto flex h-20 w-20 items-center justify-center rounded-2xl border border-blue-100 bg-white shadow-lg shadow-blue-900/5 transition-all duration-300 group-hover:-translate-y-1 group-hover:border-blue-200 group-hover:shadow-xl group-hover:shadow-blue-900/10">
+              <span className="text-2xl font-black text-blue-600">
+                {step.number}
+              </span>
+            </div>
 
-function StepCard({ number, icon, title, text }) {
-  return (
-    <div style={styles.stepCard}>
-      <div style={styles.stepNumber}>{number}</div>
+            {/* Card */}
+            <div className="mt-5 h-full rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-sm transition-all duration-300 group-hover:-translate-y-1 group-hover:border-blue-200 group-hover:shadow-xl group-hover:shadow-slate-900/5 sm:p-7">
 
-      <div style={styles.stepIcon}>{icon}</div>
+              <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-sm font-black text-blue-600">
+                {index + 1}
+              </div>
 
-      <h3 style={styles.stepTitle}>{title}</h3>
+              <h3 className="mt-5 text-lg font-black text-slate-950 sm:text-xl">
+                {step.title}
+              </h3>
 
-      <p style={styles.stepText}>{text}</p>
-    </div>
-  );
-}
+              <p className="mt-3 text-sm leading-6 text-slate-600">
+                {step.text}
+              </p>
 
-function RoleCard({
-  type,
-  icon,
-  title,
-  description,
-  items,
-  button,
-  link,
-}) {
-  return (
-    <div
-      className="rfq-card-hover"
-      style={styles.roleCard}
-    >
-      <div style={styles.roleHeader}>
-        <div style={styles.roleIcon}>{icon}</div>
+              {/* Bottom indicator */}
+              <div className="mx-auto mt-6 h-1 w-10 rounded-full bg-blue-100 transition-all duration-300 group-hover:w-16 group-hover:bg-blue-600" />
+            </div>
 
-        <span style={styles.roleBadge}>{type}</span>
-      </div>
+            {/* Mobile connector */}
+            {index < 2 && (
+              <div className="mx-auto my-1 h-6 w-px bg-blue-200 md:hidden" />
+            )}
 
-      <h3 style={styles.roleTitle}>{title}</h3>
-
-      <p style={styles.roleDescription}>{description}</p>
-
-      <div style={styles.roleList}>
-        {items.map((item) => (
-          <div key={item} style={styles.roleListItem}>
-            <FiCheckCircle />
-            {item}
           </div>
         ))}
       </div>
-
-      <Link
-        to={link}
-        style={styles.roleButton}
-        className="rfq-button"
-      >
-        {button}
-        <FiArrowRight />
-      </Link>
     </div>
-  );
-}
 
-function RegistrationStep({ number, title, text }) {
-  return (
-    <div style={styles.registrationStep}>
-      <div style={styles.registrationNumber}>{number}</div>
+    {/* Bottom message */}
+    <div className="mx-auto mt-12 flex max-w-3xl flex-col items-center justify-center gap-3 text-center sm:mt-14 sm:flex-row">
+      <div className="flex -space-x-2">
+        <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-blue-100 text-xs font-bold text-blue-700">
+          B
+        </div>
 
+        <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-indigo-100 text-xs font-bold text-indigo-700">
+          S
+        </div>
+
+        <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-violet-100 text-xs font-bold text-violet-700">
+          +
+        </div>
+      </div>
+
+      <p className="text-sm font-medium text-slate-600">
+        One structured workflow for{" "}
+        <span className="font-bold text-slate-900">
+          buyers and suppliers
+        </span>
+      </p>
+    </div>
+
+  </div>
+</section>
+
+        {/* BENEFITS */}
+       <section
+  id="benefits"
+  className="scroll-mt-20 overflow-hidden bg-slate-50 py-16 sm:py-20 lg:py-28"
+>
+  <div className="mx-auto w-full max-w-[1800px] px-4 sm:px-6 lg:px-8 2xl:px-12">
+    
+    <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
+
+      {/* LEFT CONTENT */}
       <div>
-        <strong style={styles.registrationStepTitle}>
-          {title}
-        </strong>
+        <div className="inline-flex items-center rounded-full border border-blue-100 bg-blue-50 px-3 py-1.5">
+          <span className="text-xs font-extrabold uppercase tracking-widest text-blue-700">
+            Built for B2B
+          </span>
+        </div>
 
-        <p style={styles.registrationStepText}>
-          {text}
+        <h2 className="mt-5 max-w-3xl text-3xl font-black leading-tight tracking-tight text-slate-950 sm:text-4xl lg:text-5xl xl:text-6xl">
+          A smarter way to manage
+          <span className="block text-blue-600">
+            business procurement
+          </span>
+        </h2>
+
+        <p className="mt-5 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
+          Reduce manual communication, organize supplier quotations,
+          and manage your entire procurement workflow from one
+          centralized platform.
+        </p>
+
+        {/* Benefits */}
+        <div className="mt-8 grid gap-4 sm:grid-cols-2">
+          {[
+            {
+              title: "Centralized workflow",
+              text: "Manage RFQs and quotations in one place.",
+            },
+            {
+              title: "Better communication",
+              text: "Connect buyers and suppliers efficiently.",
+            },
+            {
+              title: "Secure access",
+              text: "Role-based dashboards keep data organized.",
+            },
+            {
+              title: "Scalable platform",
+              text: "Built for growing procurement teams.",
+            },
+          ].map((item) => (
+            <div
+              key={item.title}
+              className="group rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-lg"
+            >
+              <div className="flex items-start gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 transition group-hover:bg-blue-600 group-hover:text-white">
+                  <CheckCircle2 size={18} />
+                </div>
+
+                <div className="min-w-0">
+                  <h3 className="text-sm font-bold text-slate-900">
+                    {item.title}
+                  </h3>
+
+                  <p className="mt-1 text-xs leading-5 text-slate-500">
+                    {item.text}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* RIGHT CTA CARD */}
+      {/* RIGHT CTA CARD */}
+<div className="relative w-full">
+  {/* Soft glow */}
+  <div className="absolute -inset-3 rounded-[2rem] bg-blue-500/20 blur-3xl" />
+
+  <div className="group relative overflow-hidden rounded-[2rem] border border-white/10 bg-slate-950 shadow-2xl shadow-slate-900/20">
+
+    {/* Gradient background */}
+    <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-indigo-700 to-violet-800 opacity-95" />
+
+    {/* Decorative gradient */}
+    <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.22),transparent_35%),radial-gradient(circle_at_bottom_left,rgba(56,189,248,0.18),transparent_35%)]" />
+
+    {/* Decorative circles */}
+    <div className="absolute -right-20 -top-20 h-56 w-56 rounded-full border border-white/10 bg-white/5 blur-sm transition duration-700 group-hover:scale-110" />
+    <div className="absolute -bottom-24 -left-20 h-64 w-64 rounded-full border border-white/10 bg-indigo-400/10" />
+
+    {/* Grid pattern */}
+    <div
+      className="absolute inset-0 opacity-[0.08]"
+      style={{
+        backgroundImage:
+          "linear-gradient(rgba(255,255,255,.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.5) 1px, transparent 1px)",
+        backgroundSize: "32px 32px",
+      }}
+    />
+
+    <div className="relative p-6 sm:p-8 lg:p-10 xl:p-12">
+
+      {/* Top badge */}
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3.5 py-2 text-xs font-bold text-white backdrop-blur-md">
+          <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
+          B2B PROCUREMENT PLATFORM
+        </div>
+
+        <div className="hidden h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/10 text-white/80 sm:flex">
+          <ArrowRight size={18} />
+        </div>
+      </div>
+
+      {/* Icon */}
+      <div className="mt-8 flex h-16 w-16 items-center justify-center rounded-2xl border border-white/20 bg-white/10 shadow-lg backdrop-blur-md sm:h-[68px] sm:w-[68px]">
+        <BarChart3
+          size={30}
+          className="text-white"
+          strokeWidth={2}
+        />
+      </div>
+
+      {/* Heading */}
+      <p className="mt-7 text-xs font-bold uppercase tracking-[0.22em] text-blue-200">
+        RFQ Marketplace
+      </p>
+
+      <h3 className="mt-3 max-w-xl text-3xl font-black leading-[1.1] tracking-tight text-white sm:text-4xl lg:text-[2.65rem]">
+        Ready to simplify
+        <span className="block text-blue-200">
+          your procurement?
+        </span>
+      </h3>
+
+      {/* Description */}
+      <p className="mt-5 max-w-xl text-sm leading-7 text-blue-100 sm:text-base">
+        Connect buyers and suppliers through a structured,
+        transparent and modern procurement workflow designed
+        for growing businesses.
+      </p>
+
+      {/* CTA */}
+      <button
+        type="button"
+        onClick={user ? handleDashboard : handleRegister}
+        className="group/btn mt-8 inline-flex w-full items-center justify-center gap-3 rounded-xl bg-white px-6 py-4 text-sm font-black text-blue-700 shadow-xl shadow-blue-950/20 transition-all duration-300 hover:-translate-y-1 hover:bg-blue-50 hover:shadow-2xl sm:w-auto"
+      >
+        <span>
+          {user ? "Go to Dashboard" : "Create Account"}
+        </span>
+
+        <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-100 transition-transform duration-300 group-hover/btn:translate-x-1">
+          <ArrowRight
+            size={16}
+            className="text-blue-700"
+          />
+        </span>
+      </button>
+
+      {/* Trust / Features */}
+      <div className="mt-8 border-t border-white/15 pt-6">
+        <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-blue-200">
+          Everything you need
+        </p>
+
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+
+          <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-3 backdrop-blur-sm">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-400/15">
+              <CheckCircle2
+                size={16}
+                className="text-emerald-300"
+              />
+            </div>
+
+            <span className="text-xs font-semibold text-white">
+              Buyer & Supplier
+            </span>
+          </div>
+
+          <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-3 backdrop-blur-sm">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-cyan-400/15">
+              <CheckCircle2
+                size={16}
+                className="text-cyan-300"
+              />
+            </div>
+
+            <span className="text-xs font-semibold text-white">
+              Secure Access
+            </span>
+          </div>
+
+          <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-3 backdrop-blur-sm">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-violet-400/15">
+              <CheckCircle2
+                size={16}
+                className="text-violet-300"
+              />
+            </div>
+
+            <span className="text-xs font-semibold text-white">
+              Real-time Workflow
+            </span>
+          </div>
+
+        </div>
+      </div>
+
+      {/* Bottom stats */}
+      <div className="mt-6 grid grid-cols-3 gap-3">
+        <div className="rounded-xl border border-white/10 bg-black/10 p-3 text-center">
+          <p className="text-lg font-black text-white">RFQ</p>
+          <p className="mt-0.5 text-[10px] text-blue-200">
+            Management
+          </p>
+        </div>
+
+        <div className="rounded-xl border border-white/10 bg-black/10 p-3 text-center">
+          <p className="text-lg font-black text-white">24/7</p>
+          <p className="mt-0.5 text-[10px] text-blue-200">
+            Access
+          </p>
+        </div>
+
+        <div className="rounded-xl border border-white/10 bg-black/10 p-3 text-center">
+          <p className="text-lg font-black text-white">Live</p>
+          <p className="mt-0.5 text-[10px] text-blue-200">
+            Communication
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+    </div>
+  </div>
+</section>
+      </main>
+
+      {/* FOOTER */}
+      <footer className="mt-auto border-t border-slate-800 bg-slate-950 text-white">
+  <div className="mx-auto w-full max-w-[1800px] px-4 py-10 sm:px-6 lg:px-8 2xl:px-12">
+    <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
+
+      {/* Brand */}
+      <div className="sm:col-span-2 lg:col-span-1">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-lg font-black text-slate-950 shadow-lg">
+            R
+          </div>
+
+          <div>
+            <h3 className="text-base font-extrabold tracking-tight">
+              RFQ Marketplace
+            </h3>
+            <p className="text-xs text-slate-400">
+              B2B Procurement Platform
+            </p>
+          </div>
+        </div>
+
+        <p className="mt-5 max-w-sm text-sm leading-6 text-slate-400">
+          Connect buyers and suppliers through a simple, secure and
+          professional procurement workflow.
         </p>
       </div>
-    </div>
-  );
-}
 
-function SecurityCard({ icon, title, text }) {
-  return (
-    <div
-      className="rfq-card-hover"
-      style={styles.securityCard}
-    >
-      <div style={styles.securityIcon}>{icon}</div>
+      {/* Platform */}
+      <div>
+        <h4 className="mb-4 text-sm font-bold text-white">
+          Platform
+        </h4>
 
-      <h3 style={styles.securityTitle}>{title}</h3>
-
-      <p style={styles.securityText}>{text}</p>
-    </div>
-  );
-}
-
-function PreviewMetric({ icon, value, label }) {
-  return (
-    <div style={styles.previewMetric}>
-      <div style={styles.previewMetricIcon}>{icon}</div>
-      <strong>{value}</strong>
-      <span>{label}</span>
-    </div>
-  );
-}
-
-function FooterColumn({ title, links }) {
-  return (
-    <div>
-      <h4 style={styles.footerHeading}>{title}</h4>
-
-      <div style={styles.footerLinks}>
-        {links.map(([label, action]) => (
-          <button
-            key={label}
-            onClick={action}
-            style={styles.footerLinkButton}
+        <div className="flex flex-col gap-3 text-sm text-slate-400">
+          <a
+            href="#features"
+            className="w-fit transition hover:translate-x-1 hover:text-white"
           >
-            {label}
-          </button>
-        ))}
+            Features
+          </a>
+
+          <a
+            href="#how-it-works"
+            className="w-fit transition hover:translate-x-1 hover:text-white"
+          >
+            How it works
+          </a>
+
+          <a
+            href="#benefits"
+            className="w-fit transition hover:translate-x-1 hover:text-white"
+          >
+            Benefits
+          </a>
+        </div>
+      </div>
+
+      {/* Support */}
+      <div>
+        <h4 className="mb-4 text-sm font-bold text-white">
+          Support
+        </h4>
+
+        <div className="space-y-3 text-sm">
+          <a
+            href="mailto:codepilot.devteam@gmail.com"
+            className="block break-all text-slate-400 transition hover:text-white"
+          >
+            codepilot.devteam@gmail.com
+          </a>
+
+          <a
+            href="tel:9398316147"
+            className="block text-slate-400 transition hover:text-white"
+          >
+            +91 93983 16147
+          </a>
+        </div>
+      </div>
+
+      {/* Developer */}
+      <div>
+        <h4 className="mb-4 text-sm font-bold text-white">
+          Developer
+        </h4>
+
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
+          <p className="text-sm font-bold text-white">
+            Abhisek
+          </p>
+
+          <p className="mt-1 text-xs leading-5 text-slate-400">
+            Full Stack Developer
+          </p>
+
+          <a
+            href="mailto:codepilot.devteam@gmail.com"
+            className="mt-3 inline-flex text-xs font-semibold text-slate-300 transition hover:text-white"
+          >
+            Contact Developer →
+          </a>
+        </div>
       </div>
     </div>
+
+    {/* Bottom */}
+    <div className="mt-10 flex flex-col gap-4 border-t border-slate-800 pt-6 sm:flex-row sm:items-center sm:justify-between">
+      <p className="text-center text-xs text-slate-500 sm:text-left">
+        © {new Date().getFullYear()} RFQ Marketplace. All rights reserved.
+      </p>
+
+      <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-slate-500 sm:justify-end">
+        <span>Built for modern procurement</span>
+
+        <span className="hidden h-1 w-1 rounded-full bg-slate-700 sm:block" />
+
+        <span>
+          Developed by <strong className="text-slate-300">Abhisek</strong>
+        </span>
+      </div>
+    </div>
+  </div>
+</footer>
+    </div>
   );
 }
-
-/* Small icon aliases so the main file stays readable. */
-
-function FiBellIcon() {
-  return <FiMessageCircle />;
-}
-
-function FiEditIcon() {
-  return <FiFileText />;
-}
-
-/* =========================================================
-   STYLES
-========================================================= */
-
-const styles = {
-  page: {
-    minHeight: "100vh",
-    background: "#fff",
-    overflowX: "hidden",
-  },
-
-  navbar: {
-    position: "fixed",
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 82,
-    zIndex: 1000,
-    background: "rgba(255,255,255,.88)",
-    backdropFilter: "blur(18px)",
-    WebkitBackdropFilter: "blur(18px)",
-    borderBottom: "1px solid rgba(226,232,240,.7)",
-    transition: "all .25s ease",
-  },
-
-  navbarScrolled: {
-    height: 72,
-    background: "rgba(255,255,255,.96)",
-    boxShadow: "0 8px 35px rgba(15,23,42,.07)",
-  },
-
-  container: {},
-
-  navInner: {
-    width: "min(1180px, calc(100% - 40px))",
-    height: "100%",
-    margin: "0 auto",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-
-  brand: {
-    display: "flex",
-    alignItems: "center",
-    gap: 12,
-    color: "#0f172a",
-  },
-
-  brandLogo: {
-    width: 48,
-    height: 48,
-    borderRadius: 15,
-    display: "grid",
-    placeItems: "center",
-    color: "#fff",
-    fontSize: 23,
-    fontWeight: 900,
-    background:
-      "linear-gradient(135deg,#2563eb 0%,#4f46e5 55%,#7c3aed 100%)",
-    boxShadow: "0 12px 28px rgba(37,99,235,.25)",
-  },
-
-  brandName: {
-    fontSize: 18,
-    fontWeight: 850,
-    letterSpacing: "-.4px",
-  },
-
-  brandSubtitle: {
-    marginTop: 2,
-    color: "#94a3b8",
-    fontSize: 10,
-    letterSpacing: "1.2px",
-    fontWeight: 800,
-  },
-
-  desktopNav: {
-    display: "flex",
-    alignItems: "center",
-    gap: 28,
-  },
-
-  navButton: {
-    border: 0,
-    background: "transparent",
-    color: "#475569",
-    fontSize: 14,
-    fontWeight: 750,
-    cursor: "pointer",
-    padding: "8px 0",
-  },
-
-  navSignIn: {
-    color: "#0f172a",
-    fontWeight: 800,
-    fontSize: 14,
-  },
-
-  primaryButtonSmall: {
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 9,
-    color: "#fff",
-    background:
-      "linear-gradient(135deg,#2563eb,#4f46e5)",
-    borderRadius: 13,
-    padding: "13px 18px",
-    fontWeight: 800,
-    fontSize: 14,
-    boxShadow: "0 10px 25px rgba(37,99,235,.22)",
-  },
-
-  mobileMenuButton: {
-    display: "none",
-    width: 44,
-    height: 44,
-    border: "1px solid #e2e8f0",
-    background: "#fff",
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-    cursor: "pointer",
-    color: "#0f172a",
-  },
-
-  mobileMenu: {
-    position: "absolute",
-    top: "calc(100% + 8px)",
-    left: 12,
-    right: 12,
-    padding: 12,
-    borderRadius: 18,
-    background: "#fff",
-    border: "1px solid #e2e8f0",
-    boxShadow: "0 25px 70px rgba(15,23,42,.15)",
-    display: "flex",
-    flexDirection: "column",
-    gap: 5,
-  },
-
-  hero: {
-    minHeight: "100vh",
-    paddingTop: 150,
-    paddingBottom: 90,
-    position: "relative",
-    overflow: "hidden",
-    background:
-      "radial-gradient(circle at 12% 25%,rgba(59,130,246,.10),transparent 30%), radial-gradient(circle at 88% 45%,rgba(124,58,237,.08),transparent 32%), linear-gradient(180deg,#f8fbff 0%,#fff 70%)",
-  },
-
-  heroGlowOne: {
-    position: "absolute",
-    width: 420,
-    height: 420,
-    borderRadius: "50%",
-    top: 100,
-    left: -220,
-    background: "rgba(37,99,235,.10)",
-    filter: "blur(80px)",
-    pointerEvents: "none",
-  },
-
-  heroGlowTwo: {
-    position: "absolute",
-    width: 420,
-    height: 420,
-    borderRadius: "50%",
-    right: -220,
-    top: 300,
-    background: "rgba(124,58,237,.10)",
-    filter: "blur(90px)",
-    pointerEvents: "none",
-  },
-
-  heroGrid: {
-    width: "min(1180px, calc(100% - 40px))",
-    margin: "0 auto",
-    display: "grid",
-    gridTemplateColumns: "minmax(0, .9fr) minmax(0, 1.1fr)",
-    gap: 55,
-    alignItems: "center",
-    position: "relative",
-    zIndex: 2,
-  },
-
-  heroCopy: {
-    maxWidth: 620,
-  },
-
-  eyebrow: {
-    display: "inline-flex",
-    alignItems: "center",
-    gap: 9,
-    padding: "8px 13px",
-    borderRadius: 999,
-    color: "#2563eb",
-    background: "#eff6ff",
-    border: "1px solid #dbeafe",
-    fontSize: 11,
-    fontWeight: 900,
-    letterSpacing: "1px",
-  },
-
-  eyebrowDot: {
-    width: 8,
-    height: 8,
-    borderRadius: "50%",
-    background: "#22c55e",
-    boxShadow: "0 0 0 5px rgba(34,197,94,.12)",
-    animation: "pulse 2s infinite",
-  },
-
-  heroTitle: {
-    margin: "25px 0 20px",
-    color: "#0f172a",
-    fontSize: "clamp(55px, 6.5vw, 88px)",
-    lineHeight: ".98",
-    letterSpacing: "-5px",
-    fontWeight: 900,
-  },
-
-  heroGradientText: {
-    background:
-      "linear-gradient(135deg,#2563eb,#4f46e5 55%,#7c3aed)",
-    WebkitBackgroundClip: "text",
-    WebkitTextFillColor: "transparent",
-  },
-
-  heroDescription: {
-    maxWidth: 610,
-    margin: 0,
-    color: "#64748b",
-    fontSize: 19,
-    lineHeight: 1.75,
-  },
-
-  heroActions: {
-    display: "flex",
-    alignItems: "center",
-    gap: 13,
-    marginTop: 30,
-  },
-
-  primaryButton: {
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
-    padding: "15px 21px",
-    borderRadius: 14,
-    color: "#fff",
-    background:
-      "linear-gradient(135deg,#2563eb,#4f46e5)",
-    fontSize: 15,
-    fontWeight: 850,
-    border: 0,
-    cursor: "pointer",
-    boxShadow: "0 15px 35px rgba(37,99,235,.24)",
-  },
-
-  secondaryButton: {
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
-    padding: "14px 20px",
-    borderRadius: 14,
-    color: "#0f172a",
-    background: "#fff",
-    border: "1px solid #dbe3ef",
-    fontSize: 15,
-    fontWeight: 800,
-    cursor: "pointer",
-    boxShadow: "0 7px 20px rgba(15,23,42,.05)",
-  },
-
-  playCircle: {
-    width: 27,
-    height: 27,
-    borderRadius: "50%",
-    display: "grid",
-    placeItems: "center",
-    background: "#eff6ff",
-    color: "#2563eb",
-  },
-
-  trustRow: {
-    display: "flex",
-    alignItems: "center",
-    flexWrap: "wrap",
-    gap: 20,
-    marginTop: 25,
-    color: "#64748b",
-    fontSize: 12,
-    fontWeight: 700,
-  },
-
-  trustItem: {},
-
-  dashboardPreview: {
-    position: "relative",
-    animation: "floatSlow 6s ease-in-out infinite",
-  },
-
-  previewWindow: {
-    position: "relative",
-    minHeight: 590,
-    borderRadius: 25,
-    overflow: "hidden",
-    background: "#fff",
-    border: "1px solid #dbe4ef",
-    boxShadow:
-      "0 35px 100px rgba(15,23,42,.15), 0 8px 30px rgba(37,99,235,.06)",
-  },
-
-  previewTopbar: {
-    height: 55,
-    display: "flex",
-    alignItems: "center",
-    padding: "0 17px",
-    borderBottom: "1px solid #e8edf4",
-    background: "#fbfdff",
-  },
-
-  browserDots: {
-    display: "flex",
-    gap: 5,
-    width: 70,
-  },
-
-  previewTitle: {
-    flex: 1,
-    textAlign: "center",
-    color: "#64748b",
-    fontSize: 12,
-    fontWeight: 800,
-  },
-
-  liveBadge: {
-    display: "flex",
-    alignItems: "center",
-    gap: 6,
-    color: "#16a34a",
-    fontSize: 11,
-    fontWeight: 800,
-  },
-
-  previewContent: {
-    display: "grid",
-    gridTemplateColumns: "76px 1fr",
-    minHeight: 535,
-  },
-
-  previewSidebar: {
-    padding: "20px 13px",
-    borderRight: "1px solid #edf1f6",
-    background: "#f8fafc",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    gap: 13,
-  },
-
-  previewLogo: {
-    width: 43,
-    height: 43,
-    borderRadius: 12,
-    display: "grid",
-    placeItems: "center",
-    color: "#fff",
-    fontWeight: 900,
-    background:
-      "linear-gradient(135deg,#2563eb,#4f46e5)",
-    marginBottom: 10,
-  },
-
-  previewSideIcon: {
-    width: 43,
-    height: 43,
-    display: "grid",
-    placeItems: "center",
-    borderRadius: 12,
-    color: "#94a3b8",
-  },
-
-  previewSideIconActive: {
-    background: "#eff6ff",
-    color: "#2563eb",
-  },
-
-  previewMain: {
-    padding: 24,
-    background: "#fff",
-  },
-
-  previewHeader: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-
-  previewSmall: {
-    color: "#94a3b8",
-    fontSize: 9,
-    letterSpacing: "1.3px",
-    fontWeight: 900,
-  },
-
-  previewHeading: {
-    margin: "5px 0 0",
-    color: "#0f172a",
-    fontSize: 20,
-    letterSpacing: "-.6px",
-  },
-
-  previewAvatar: {
-    width: 38,
-    height: 38,
-    borderRadius: "50%",
-    display: "grid",
-    placeItems: "center",
-    background: "#e2e8f0",
-    color: "#334155",
-    fontWeight: 900,
-  },
-
-  metricGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(3,1fr)",
-    gap: 12,
-    marginTop: 24,
-  },
-
-  previewMetric: {
-    minHeight: 125,
-    padding: 15,
-    border: "1px solid #e5eaf1",
-    borderRadius: 15,
-    display: "flex",
-    flexDirection: "column",
-    gap: 4,
-    background: "#fff",
-  },
-
-  previewMetricIcon: {
-    width: 32,
-    height: 32,
-    display: "grid",
-    placeItems: "center",
-    color: "#2563eb",
-    background: "#eff6ff",
-    borderRadius: 9,
-    marginBottom: 6,
-  },
-
-  chartCard: {
-    marginTop: 14,
-    padding: 17,
-    border: "1px solid #e5eaf1",
-    borderRadius: 15,
-  },
-
-  chartHeader: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-
-  chart: {
-    height: 145,
-    marginTop: 15,
-    display: "flex",
-    alignItems: "flex-end",
-    gap: 10,
-    padding: "0 8px",
-  },
-
-  chartBar: {
-    flex: 1,
-    minWidth: 10,
-    borderRadius: "7px 7px 2px 2px",
-    background:
-      "linear-gradient(180deg,#60a5fa,#2563eb)",
-    animation:
-      "fadeUp .8s ease both",
-  },
-
-  activityCard: {
-    display: "flex",
-    alignItems: "center",
-    gap: 12,
-    marginTop: 14,
-    padding: 15,
-    borderRadius: 15,
-    background: "#f8fafc",
-    border: "1px solid #e7edf4",
-  },
-
-  activityIcon: {
-    width: 38,
-    height: 38,
-    display: "grid",
-    placeItems: "center",
-    borderRadius: 11,
-    color: "#2563eb",
-    background: "#dbeafe",
-  },
-
-  onlineDot: {
-    width: 9,
-    height: 9,
-    borderRadius: "50%",
-    background: "#22c55e",
-    boxShadow: "0 0 0 5px rgba(34,197,94,.10)",
-  },
-
-  floatingQuotation: {
-    position: "absolute",
-    left: -30,
-    bottom: 55,
-    display: "flex",
-    alignItems: "center",
-    gap: 10,
-    padding: "13px 16px",
-    borderRadius: 15,
-    background: "#fff",
-    border: "1px solid #e2e8f0",
-    boxShadow: "0 18px 45px rgba(15,23,42,.14)",
-    animation: "notification 4s ease-in-out infinite",
-  },
-
-  floatingChat: {
-    position: "absolute",
-    right: -28,
-    top: 130,
-    display: "flex",
-    alignItems: "center",
-    gap: 9,
-    padding: "12px 15px",
-    borderRadius: 13,
-    color: "#2563eb",
-    background: "#eff6ff",
-    border: "1px solid #dbeafe",
-    boxShadow: "0 18px 45px rgba(37,99,235,.13)",
-    animation: "float 4s ease-in-out infinite",
-  },
-
-  successIcon: {
-    width: 31,
-    height: 31,
-    display: "grid",
-    placeItems: "center",
-    color: "#16a34a",
-    background: "#dcfce7",
-    borderRadius: "50%",
-  },
-
-  section: {
-    padding: "105px 0",
-    background: "#fff",
-  },
-
-  sectionHeading: {
-    maxWidth: 720,
-    margin: "0 auto 55px",
-    textAlign: "center",
-  },
-
-  sectionTitle: {
-    margin: "17px 0 13px",
-    color: "#0f172a",
-    fontSize: 48,
-    lineHeight: 1.05,
-    letterSpacing: "-2.5px",
-    fontWeight: 900,
-  },
-
-  sectionDescription: {
-    margin: 0,
-    color: "#64748b",
-    fontSize: 17,
-    lineHeight: 1.7,
-  },
-
-  featureGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(3,1fr)",
-    gap: 17,
-  },
-
-  featureCard: {
-    position: "relative",
-    minHeight: 255,
-    padding: 25,
-    border: "1px solid #e5eaf1",
-    borderRadius: 20,
-    background: "#fff",
-    overflow: "hidden",
-  },
-
-  featureTop: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-  },
-
-  featureIcon: {
-    width: 48,
-    height: 48,
-    display: "grid",
-    placeItems: "center",
-    borderRadius: 14,
-    color: "#2563eb",
-    background: "#eff6ff",
-    fontSize: 21,
-  },
-
-  featureNumber: {
-    color: "#cbd5e1",
-    fontSize: 12,
-    fontWeight: 900,
-  },
-
-  featureTitle: {
-    margin: "27px 0 10px",
-    color: "#0f172a",
-    fontSize: 19,
-  },
-
-  featureText: {
-    margin: 0,
-    color: "#64748b",
-    lineHeight: 1.7,
-    fontSize: 14,
-  },
-
-  featureArrow: {
-    position: "absolute",
-    right: 24,
-    bottom: 24,
-    color: "#2563eb",
-  },
-
-  darkSection: {
-    padding: "105px 0",
-    background:
-      "radial-gradient(circle at 80% 20%,rgba(37,99,235,.18),transparent 30%), #0b1220",
-  },
-
-  darkEyebrow: {
-    color: "#93c5fd",
-    background: "rgba(37,99,235,.12)",
-    borderColor: "rgba(96,165,250,.22)",
-  },
-
-  darkSectionTitle: {
-    color: "#fff",
-  },
-
-  darkSectionDescription: {
-    color: "#94a3b8",
-  },
-
-  stepsGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(4,1fr)",
-    gap: 15,
-  },
-
-  stepCard: {
-    position: "relative",
-    padding: 26,
-    borderRadius: 20,
-    border: "1px solid rgba(148,163,184,.14)",
-    background: "rgba(255,255,255,.035)",
-  },
-
-  stepNumber: {
-    color: "#60a5fa",
-    fontSize: 11,
-    fontWeight: 900,
-    letterSpacing: "1px",
-  },
-
-  stepIcon: {
-    width: 48,
-    height: 48,
-    marginTop: 28,
-    display: "grid",
-    placeItems: "center",
-    borderRadius: 14,
-    color: "#93c5fd",
-    background: "rgba(37,99,235,.15)",
-    fontSize: 21,
-  },
-
-  stepTitle: {
-    color: "#fff",
-    margin: "22px 0 10px",
-    fontSize: 18,
-  },
-
-  stepText: {
-    margin: 0,
-    color: "#94a3b8",
-    fontSize: 14,
-    lineHeight: 1.7,
-  },
-
-  roleGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(2,1fr)",
-    gap: 20,
-  },
-
-  roleCard: {
-    padding: 32,
-    border: "1px solid #e5eaf1",
-    borderRadius: 22,
-    background: "#fff",
-  },
-
-  roleHeader: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-
-  roleIcon: {
-    width: 52,
-    height: 52,
-    display: "grid",
-    placeItems: "center",
-    color: "#2563eb",
-    background: "#eff6ff",
-    borderRadius: 15,
-    fontSize: 22,
-  },
-
-  roleBadge: {
-    padding: "7px 10px",
-    borderRadius: 999,
-    color: "#2563eb",
-    background: "#eff6ff",
-    fontSize: 10,
-    fontWeight: 900,
-    letterSpacing: ".7px",
-  },
-
-  roleTitle: {
-    margin: "25px 0 10px",
-    color: "#0f172a",
-    fontSize: 25,
-  },
-
-  roleDescription: {
-    margin: 0,
-    color: "#64748b",
-    lineHeight: 1.7,
-  },
-
-  roleList: {
-    marginTop: 23,
-    display: "flex",
-    flexDirection: "column",
-    gap: 11,
-  },
-
-  roleListItem: {
-    display: "flex",
-    alignItems: "center",
-    gap: 9,
-    color: "#475569",
-    fontSize: 14,
-    fontWeight: 650,
-  },
-
-  roleButton: {
-    marginTop: 27,
-    display: "inline-flex",
-    alignItems: "center",
-    gap: 8,
-    padding: "13px 17px",
-    borderRadius: 12,
-    color: "#2563eb",
-    background: "#eff6ff",
-    fontWeight: 800,
-    fontSize: 14,
-  },
-
-  registrationSection: {
-    padding: "90px 0",
-    background: "#f8fafc",
-  },
-
-  registrationBox: {
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: 50,
-    padding: "55px",
-    borderRadius: 28,
-    background:
-      "linear-gradient(135deg,#0f172a,#172554)",
-    position: "relative",
-    overflow: "hidden",
-  },
-
-  registrationLeft: {
-    position: "relative",
-    zIndex: 2,
-  },
-
-  registrationTitle: {
-    margin: "20px 0 15px",
-    color: "#fff",
-    fontSize: 43,
-    lineHeight: 1.05,
-    letterSpacing: "-2px",
-  },
-
-  registrationDescription: {
-    maxWidth: 510,
-    color: "#94a3b8",
-    lineHeight: 1.75,
-    marginBottom: 28,
-  },
-
-  registrationSteps: {
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: 14,
-    position: "relative",
-    zIndex: 2,
-  },
-
-  registrationStep: {
-    display: "flex",
-    gap: 12,
-    padding: 18,
-    borderRadius: 16,
-    background: "rgba(255,255,255,.055)",
-    border: "1px solid rgba(148,163,184,.12)",
-  },
-
-  registrationNumber: {
-    width: 32,
-    height: 32,
-    flexShrink: 0,
-    display: "grid",
-    placeItems: "center",
-    borderRadius: 10,
-    background: "#2563eb",
-    color: "#fff",
-    fontWeight: 900,
-  },
-
-  registrationStepTitle: {
-    display: "block",
-    color: "#fff",
-    fontSize: 14,
-  },
-
-  registrationStepText: {
-    margin: "5px 0 0",
-    color: "#94a3b8",
-    fontSize: 12,
-    lineHeight: 1.5,
-  },
-
-  securityGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(4,1fr)",
-    gap: 16,
-  },
-
-  securityCard: {
-    padding: 25,
-    border: "1px solid #e5eaf1",
-    borderRadius: 19,
-    background: "#fff",
-  },
-
-  securityIcon: {
-    width: 46,
-    height: 46,
-    display: "grid",
-    placeItems: "center",
-    borderRadius: 13,
-    background: "#eff6ff",
-    color: "#2563eb",
-    fontSize: 20,
-  },
-
-  securityTitle: {
-    margin: "22px 0 10px",
-    fontSize: 17,
-    color: "#0f172a",
-  },
-
-  securityText: {
-    margin: 0,
-    color: "#64748b",
-    fontSize: 13,
-    lineHeight: 1.7,
-  },
-
-  helpSection: {
-    padding: "105px 0",
-    background: "#f8fafc",
-  },
-
-  helpHeader: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "flex-end",
-    gap: 25,
-    marginBottom: 35,
-  },
-
-  emailButton: {
-    display: "inline-flex",
-    alignItems: "center",
-    gap: 9,
-    padding: "13px 18px",
-    borderRadius: 12,
-    color: "#fff",
-    background: "#0f172a",
-    fontWeight: 800,
-    whiteSpace: "nowrap",
-  },
-
-  faqList: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 10,
-  },
-
-  faqItem: {
-    border: "1px solid #e2e8f0",
-    borderRadius: 16,
-    background: "#fff",
-    overflow: "hidden",
-    transition: "all .25s ease",
-  },
-
-  faqItemOpen: {
-    borderColor: "#bfdbfe",
-    boxShadow: "0 12px 35px rgba(37,99,235,.06)",
-  },
-
-  faqQuestion: {
-    width: "100%",
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: 15,
-    padding: "19px 21px",
-    border: 0,
-    background: "transparent",
-    color: "#0f172a",
-    cursor: "pointer",
-    textAlign: "left",
-    fontSize: 14,
-    fontWeight: 800,
-  },
-
-  faqQuestionSpan: {},
-
-  faqAnswer: {
-    padding: "0 21px 20px 51px",
-    color: "#64748b",
-    fontSize: 14,
-    lineHeight: 1.7,
-  },
-
-  contactCard: {
-    display: "flex",
-    alignItems: "center",
-    gap: 17,
-    marginTop: 35,
-    padding: 23,
-    borderRadius: 18,
-    background: "#fff",
-    border: "1px solid #e2e8f0",
-  },
-
-  contactIcon: {
-    width: 48,
-    height: 48,
-    flexShrink: 0,
-    display: "grid",
-    placeItems: "center",
-    borderRadius: 13,
-    color: "#2563eb",
-    background: "#eff6ff",
-    fontSize: 20,
-  },
-
-  contactButton: {
-    display: "inline-flex",
-    alignItems: "center",
-    gap: 8,
-    padding: "11px 15px",
-    borderRadius: 11,
-    color: "#2563eb",
-    background: "#eff6ff",
-    fontWeight: 800,
-    fontSize: 13,
-    whiteSpace: "nowrap",
-  },
-
-  footer: {
-    padding: "75px 0 25px",
-    background: "#050b16",
-    color: "#fff",
-  },
-
-  footerGrid: {
-    display: "grid",
-    gridTemplateColumns: "1.5fr 1fr 1fr 1.1fr",
-    gap: 50,
-    paddingBottom: 55,
-  },
-
-  footerBrandColumn: {
-    maxWidth: 380,
-  },
-
-  footerBrand: {
-    display: "inline-flex",
-    alignItems: "center",
-    gap: 12,
-    color: "#fff",
-  },
-
-  footerLogo: {
-    width: 45,
-    height: 45,
-    display: "grid",
-    placeItems: "center",
-    borderRadius: 13,
-    background:
-      "linear-gradient(135deg,#2563eb,#4f46e5)",
-    fontSize: 21,
-    fontWeight: 900,
-  },
-
-  footerDescription: {
-    margin: "22px 0",
-    color: "#94a3b8",
-    lineHeight: 1.75,
-    fontSize: 13,
-  },
-
-  openSourceBadge: {
-    display: "inline-flex",
-    alignItems: "center",
-    gap: 7,
-    padding: "8px 11px",
-    borderRadius: 9,
-    border: "1px solid #1e293b",
-    color: "#cbd5e1",
-    fontSize: 12,
-    fontWeight: 700,
-  },
-
-  footerHeading: {
-    margin: "4px 0 19px",
-    color: "#fff",
-    fontSize: 14,
-  },
-
-  footerLinks: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "flex-start",
-    gap: 12,
-  },
-
-  footerLink: {
-    display: "flex",
-    alignItems: "center",
-    gap: 8,
-    marginTop: 13,
-    color: "#94a3b8",
-    fontSize: 13,
-  },
-
-  footerLinkButton: {
-    border: 0,
-    padding: 0,
-    background: "transparent",
-    color: "#94a3b8",
-    fontSize: 13,
-    cursor: "pointer",
-    textAlign: "left",
-  },
-
-  developerName: {
-    color: "#94a3b8",
-    fontSize: 13,
-    lineHeight: 1.6,
-  },
-
-  footerTech: {
-    display: "flex",
-    alignItems: "center",
-    gap: 7,
-    marginTop: 18,
-    color: "#64748b",
-    fontSize: 11,
-  },
-
-  footerBottom: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 20,
-    paddingTop: 24,
-    borderTop: "1px solid #172033",
-    color: "#64748b",
-    fontSize: 11,
-  },
-
-  footerOpenSource: {
-    color: "#60a5fa",
-  },
-};
