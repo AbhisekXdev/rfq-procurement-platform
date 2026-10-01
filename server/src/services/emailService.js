@@ -1,16 +1,7 @@
-import nodemailer from "nodemailer";
-
-const transporter = nodemailer.createTransport({
-  host: "in-v3.mailjet.com",
-  port: 587,
-  secure: false,
-  auth: {
-    user: process.env.MAILJET_API_KEY,
-    pass: process.env.MAILJET_SECRET_KEY,
-  },
-});
+import axios from "axios";
 
 export const sendOtpEmail = async ({ to, otp, purpose }) => {
+  // Validate environment variables
   if (!process.env.MAILJET_API_KEY) {
     throw new Error("Mailjet API key is not configured");
   }
@@ -29,15 +20,16 @@ export const sendOtpEmail = async ({ to, otp, purpose }) => {
     FORGOT_PASSWORD: "reset your RFQ Marketplace password",
   }[purpose] || "complete your RFQ Marketplace verification";
 
-  try {
-    const info = await transporter.sendMail({
-      from: `"${process.env.MAILJET_SENDER_NAME || "RFQ Marketplace"}" <${process.env.MAILJET_SENDER_EMAIL}>`,
+  const senderName =
+    process.env.MAILJET_SENDER_NAME || "RFQ Marketplace";
 
-      to,
+  const currentYear = new Date().getFullYear();
 
-      subject: `Your RFQ Marketplace OTP: ${otp}`,
+  // Email subject
+  const subject = `Your RFQ Marketplace OTP: ${otp}`;
 
-      text: `
+  // Plain text email
+  const text = `
 Your OTP to ${purposeText} is ${otp}.
 
 This OTP expires in 5 minutes.
@@ -48,9 +40,10 @@ If you did not request this code, you can safely ignore this email.
 
 RFQ Marketplace
 B2B Procurement Platform
-      `,
+  `.trim();
 
-      html: `
+  // HTML email
+  const html = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -192,7 +185,7 @@ B2B Procurement Platform
         color:#9ca3af;
         font-size:12px;
       ">
-        © ${new Date().getFullYear()} RFQ Marketplace
+        © ${currentYear} RFQ Marketplace
       </p>
 
     </div>
@@ -201,21 +194,67 @@ B2B Procurement Platform
 
 </body>
 </html>
-      `,
+  `.trim();
+
+  try {
+    // Mailjet HTTPS API
+    const response = await axios.post(
+      "https://api.mailjet.com/v3.1/send",
+      {
+        Messages: [
+          {
+            From: {
+              Email: process.env.MAILJET_SENDER_EMAIL,
+              Name: senderName,
+            },
+
+            To: [
+              {
+                Email: to,
+              },
+            ],
+
+            Subject: subject,
+
+            TextPart: text,
+
+            HTMLPart: html,
+          },
+        ],
+      },
+      {
+        auth: {
+          username: process.env.MAILJET_API_KEY,
+          password: process.env.MAILJET_SECRET_KEY,
+        },
+
+        // Prevent registration from hanging for a long time
+        timeout: 10000,
+      }
+    );
+
+    console.log("✅ Mailjet OTP email sent successfully:", {
+      to,
+      status: response.status,
+      messageId:
+        response.data?.Messages?.[0]?.To?.[0]?.MessageUUID ||
+        response.data?.Messages?.[0]?.Status ||
+        "sent",
     });
 
-    console.log("✅ Mailjet OTP email sent:", {
-      messageId: info.messageId,
-      response: info.response,
-    });
-
-    return info;
+    return response.data;
 
   } catch (error) {
-    console.error("❌ Mailjet OTP email error:", error);
+    console.error("❌ Mailjet OTP email error:", {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+    });
 
     throw new Error(
-      error?.message || "Failed to send OTP email"
+      error.response?.data?.ErrorMessage ||
+      error.message ||
+      "Failed to send OTP email"
     );
   }
 };
