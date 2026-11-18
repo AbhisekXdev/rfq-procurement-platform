@@ -20,24 +20,30 @@ export function AuthProvider({ children }) {
   const [token, setToken] = useState(getToken);
   const [loading, setLoading] = useState(false);
 
-  const login = useCallback(async (email, password, role) => {
-    setLoading(true);
-    try {
-      const { data } = await api.post("/auth/login", {
-        email,
-        password,
-        ...(role ? { role } : {}),
-      });
-      setSession(data.token, data.user);
-      setToken(data.token);
-      setUser(data.user);
-      return data;
-    } catch (error) {
-      throw new Error(getErrorMessage(error));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  
+const login = useCallback(async (email, password, role, captchaToken) => {
+  setLoading(true);
+
+  try {
+    const { data } = await api.post("/auth/login", {
+      email,
+      password,
+      ...(role ? { role } : {}),
+      captchaToken,
+    });
+
+    setSession(data.token, data.user);
+    setToken(data.token);
+    setUser(data.user);
+
+    return data;
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  } finally {
+    setLoading(false);
+  }
+}, []);
+
 
   const register = useCallback(async (payload) => {
     setLoading(true);

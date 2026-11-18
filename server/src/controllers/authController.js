@@ -12,6 +12,47 @@ const publicUser = (user) => ({
   isActive: user.isActive,
 });
 
+
+const verifyTurnstileToken = async (token, remoteIp) => {
+  const secret = process.env.TURNSTILE_SECRET_KEY;
+
+  if (!secret) {
+    throw new Error("Turnstile secret key is not configured");
+  }
+
+  if (!token) {
+    return false;
+  }
+
+  const body = new URLSearchParams({
+    secret,
+    response: token,
+  });
+
+  if (remoteIp) {
+    body.append("remoteip", remoteIp);
+  }
+
+  const response = await fetch(
+    "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body,
+    }
+  );
+
+  if (!response.ok) {
+    return false;
+  }
+
+  const result = await response.json();
+  return result.success === true;
+};
+
+
 export const registerUser = async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
@@ -113,19 +154,62 @@ export const resendRegistrationOtp = async (req, res) => {
   }
 };
 
+
 export const loginUser = async (req, res) => {
   try {
-    const { email, password, role } = req.body;
-    const normalizedEmail = email.toLowerCase().trim();
-    const user = await User.findOne({ where: { email: normalizedEmail } });
+    const { email, password, role, captchaToken } = req.body;
 
-    if (!user || !(await bcrypt.compare(password, user.password))) {
-      return res.status(401).json({ success: false, message: "Invalid email or password" });
+    if (!captchaToken) {
+      return res.status(400).json({
+        success: false,
+        message: "Security verification is required",
+      });
     }
 
-    if (!user.isActive) return res.status(403).json({ success: false, message: "Account is inactive" });
-    if (!user.isEmailVerified) return res.status(403).json({ success: false, message: "Please verify your email before login" });
-    if (role && user.role !== role) return res.status(403).json({ success: false, message: `This account is not registered as ${role}` });
+    const captchaVerified = await verifyTurnstileToken(
+      captchaToken,
+      req.ip
+    );
+
+    if (!captchaVerified) {
+      return res.status(403).json({
+        success: false,
+        message: "Security verification failed. Please try again.",
+      });
+    }
+
+    const normalizedEmail = email.toLowerCase().trim();
+    const user = await User.findOne({
+      where: { email: normalizedEmail },
+    });
+
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid email or password",
+      });
+    }
+
+    if (!user.isActive) {
+      return res.status(403).json({
+        success: false,
+        message: "Account is inactive",
+      });
+    }
+
+    if (!user.isEmailVerified) {
+      return res.status(403).json({
+        success: false,
+        message: "Please verify your email before login",
+      });
+    }
+
+    if (role && user.role !== role) {
+      return res.status(403).json({
+        success: false,
+        message: `This account is not registered as ${role}`,
+      });
+    }
 
     user.lastLoginAt = new Date();
     user.lastActiveAt = new Date();
@@ -140,9 +224,14 @@ export const loginUser = async (req, res) => {
     });
   } catch (error) {
     console.error("Login error:", error);
-    return res.status(error.statusCode || 500).json({ success: false, message: error.message || "Internal server error" });
+
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || "Internal server error",
+    });
   }
 };
+
 
 export const verifyLoginOtp = async (req, res) => {
   try {
