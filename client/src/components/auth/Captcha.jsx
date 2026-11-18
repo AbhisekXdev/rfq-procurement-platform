@@ -1,185 +1,131 @@
-import React, { useCallback, useEffect, useState } from "react";
 
-const makeCaptcha = () => {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+import React, {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+} from "react";
 
-  let value = "";
+const SCRIPT_URL =
+  "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
 
-  for (let i = 0; i < 6; i += 1) {
-    value += chars[Math.floor(Math.random() * chars.length)];
-  }
+const Captcha = forwardRef(function Captcha(
+  { onVerified, onError },
+  ref
+) {
+  const containerRef = useRef(null);
+  const widgetIdRef = useRef(null);
+  const pendingExecuteRef = useRef(false);
 
-  return value;
-};
+  const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY;
 
-export default function Captcha({ onValidChange }) {
-  const [code, setCode] = useState("");
-  const [captcha, setCaptcha] = useState(makeCaptcha);
+  useImperativeHandle(ref, () => ({
+    execute() {
+      if (!siteKey) {
+        onError?.(
+          "CAPTCHA is not configured. Add your Cloudflare Turnstile site key."
+        );
+        return;
+      }
 
-  const refresh = useCallback(() => {
-    const next = makeCaptcha();
+      if (!window.turnstile || widgetIdRef.current === null) {
+        pendingExecuteRef.current = true;
+        return;
+      }
 
-    setCaptcha(next);
-    setCode("");
+      window.turnstile.execute(widgetIdRef.current);
+    },
 
-    onValidChange?.(false);
-  }, [onValidChange]);
+    reset() {
+      if (window.turnstile && widgetIdRef.current !== null) {
+        window.turnstile.reset(widgetIdRef.current);
+      }
+    },
+  }));
 
   useEffect(() => {
-    onValidChange?.(false);
-  }, [captcha, onValidChange]);
+    if (!siteKey) return undefined;
 
-  const handleChange = (event) => {
-    const value = event.target.value
-      .replace(/[^a-zA-Z0-9]/g, "")
-      .slice(0, 6);
+    let cancelled = false;
 
-    setCode(value);
+    const renderWidget = () => {
+      if (
+        cancelled ||
+        !containerRef.current ||
+        !window.turnstile ||
+        widgetIdRef.current !== null
+      ) {
+        return;
+      }
 
-    onValidChange?.(value.toUpperCase() === captcha);
-  };
+      widgetIdRef.current = window.turnstile.render(
+        containerRef.current,
+        {
+          sitekey: siteKey,
+          size: "invisible",
+          execution: "execute",
 
-  const isValid =
-    code.length > 0 && code.toUpperCase() === captcha;
+          callback: (token) => {
+            pendingExecuteRef.current = false;
+            onVerified?.(token);
+          },
 
-  const isInvalid =
-    code.length > 0 && !isValid;
+          "expired-callback": () => {
+            onError?.("Security verification expired. Please try again.");
+          },
 
-  return (
-    <div className="w-full min-w-0 rounded-xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
+          "error-callback": () => {
+            pendingExecuteRef.current = false;
+            onError?.("Security verification failed. Please try again.");
+          },
+        }
+      );
 
-      {/* CAPTCHA HEADER */}
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-sm font-semibold text-slate-800">
-            Security verification
-          </p>
+      if (pendingExecuteRef.current) {
+        pendingExecuteRef.current = false;
+        window.turnstile.execute(widgetIdRef.current);
+      }
+    };
 
-          <p className="mt-0.5 text-xs text-slate-500">
-            Enter the code shown below
-          </p>
-        </div>
+    let script = document.querySelector(
+      `script[src="${SCRIPT_URL}"]`
+    );
 
-        <button
-          type="button"
-          onClick={refresh}
-          title="Refresh CAPTCHA"
-          aria-label="Refresh CAPTCHA"
-          className="
-            flex h-9 w-9 shrink-0
-            items-center justify-center
-            rounded-lg
-            border border-slate-200
-            bg-white
-            text-lg
-            text-slate-600
-            shadow-sm
-            transition
-            hover:bg-slate-100
-            hover:text-blue-600
-            focus:outline-none
-            focus:ring-2
-            focus:ring-blue-500
-            active:scale-95
-          "
-        >
-          ↻
-        </button>
-      </div>
+    if (window.turnstile) {
+      renderWidget();
+    } else if (script) {
+      script.addEventListener("load", renderWidget);
+    } else {
+      script = document.createElement("script");
+      script.src = SCRIPT_URL;
+      script.async = true;
+      script.defer = true;
+      script.addEventListener("load", renderWidget);
+      script.addEventListener("error", () => {
+        onError?.("Unable to load security verification.");
+      });
+      document.head.appendChild(script);
+    }
 
-      {/* CAPTCHA CODE */}
-      <div className="flex w-full items-center gap-3">
+    return () => {
+      cancelled = true;
 
-        <div
-          aria-label="CAPTCHA code"
-          className="
-            flex
-            min-w-0
-            flex-1
-            select-none
-            items-center
-            justify-center
-            overflow-hidden
-            rounded-xl
-            border border-slate-300
-            bg-white
-            px-3
-            py-3
-            text-center
-            font-mono
-            text-xl
-            font-bold
-            tracking-[0.35em]
-            text-slate-800
-            sm:text-2xl
-          "
-        >
-          {captcha}
-        </div>
+      if (script) {
+        script.removeEventListener("load", renderWidget);
+      }
 
-      </div>
+      if (
+        window.turnstile &&
+        widgetIdRef.current !== null
+      ) {
+        window.turnstile.remove(widgetIdRef.current);
+      }
 
-      {/* INPUT */}
-      <div className="mt-4">
-        <input
-          type="text"
-          value={code}
-          onChange={handleChange}
-          placeholder="Enter CAPTCHA"
-          autoComplete="off"
-          maxLength={6}
-          required
-          spellCheck={false}
-          className={`
-            block
-            w-full
-            min-w-0
-            rounded-xl
-            border
-            bg-white
-            px-4
-            py-3
-            text-sm
-            font-medium
-            uppercase
-            tracking-widest
-            text-slate-900
-            outline-none
-            transition
-            placeholder:normal-case
-            placeholder:tracking-normal
-            placeholder:text-slate-400
-            focus:ring-4
+      widgetIdRef.current = null;
+    };
+  }, [siteKey, onVerified, onError]);
 
-            ${
-              isValid
-                ? "border-emerald-500 focus:border-emerald-500 focus:ring-emerald-100"
-                : isInvalid
-                ? "border-red-400 focus:border-red-500 focus:ring-red-100"
-                : "border-slate-300 focus:border-blue-500 focus:ring-blue-100"
-            }
-          `}
-        />
-      </div>
+  return <div ref={containerRef} aria-hidden="true" />;
+});
 
-      {/* STATUS */}
-      <div className="mt-2 min-h-[18px]">
-        {isValid ? (
-          <p className="flex items-center gap-1.5 text-xs font-medium text-emerald-600">
-            <span>✓</span>
-            CAPTCHA verified
-          </p>
-        ) : isInvalid ? (
-          <p className="flex items-center gap-1.5 text-xs font-medium text-red-600">
-            <span>!</span>
-            CAPTCHA does not match
-          </p>
-        ) : (
-          <p className="text-xs text-slate-500">
-            Enter the 6-character code shown above
-          </p>
-        )}
-      </div>
-    </div>
-  );
-}
+export default Captcha;
