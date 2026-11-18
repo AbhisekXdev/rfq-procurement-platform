@@ -58,28 +58,22 @@ const Captcha = forwardRef(function Captcha(
         return;
       }
 
-      widgetIdRef.current = window.turnstile.render(
-        containerRef.current,
-        {
-          sitekey: siteKey,
-          size: "invisible",
-          execution: "execute",
+      widgetIdRef.current = window.turnstile.render(containerRef.current, {
+  sitekey: siteKey,
+  execution: "execute",
 
-          callback: (token) => {
-            pendingExecuteRef.current = false;
-            onVerified?.(token);
-          },
+  callback: (token) => {
+    onVerified(token);
+  },
 
-          "expired-callback": () => {
-            onError?.("Security verification expired. Please try again.");
-          },
+  "expired-callback": () => {
+    onError("CAPTCHA expired. Please try again.");
+  },
 
-          "error-callback": () => {
-            pendingExecuteRef.current = false;
-            onError?.("Security verification failed. Please try again.");
-          },
-        }
-      );
+  "error-callback": () => {
+    onError("CAPTCHA verification failed. Please try again.");
+  },
+});
 
       if (pendingExecuteRef.current) {
         pendingExecuteRef.current = false;
