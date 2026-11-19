@@ -17,12 +17,21 @@ const Captcha = forwardRef(function Captcha(
   const widgetIdRef = useRef(null);
   const pendingExecuteRef = useRef(false);
 
+  const onVerifiedRef = useRef(onVerified);
+  const onErrorRef = useRef(onError);
+
   const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY;
+
+  // Keep callbacks updated without recreating the Turnstile widget.
+  useEffect(() => {
+    onVerifiedRef.current = onVerified;
+    onErrorRef.current = onError;
+  }, [onVerified, onError]);
 
   useImperativeHandle(ref, () => ({
     execute() {
       if (!siteKey) {
-        onError?.(
+        onErrorRef.current?.(
           "CAPTCHA is not configured. Add your Cloudflare Turnstile site key."
         );
         return;
@@ -33,20 +42,32 @@ const Captcha = forwardRef(function Captcha(
         return;
       }
 
-      window.turnstile.execute(widgetIdRef.current);
+      try {
+        window.turnstile.execute(widgetIdRef.current);
+      } catch {
+        pendingExecuteRef.current = false;
+        onErrorRef.current?.(
+          "Security verification could not start. Please try again."
+        );
+      }
     },
 
     reset() {
+      pendingExecuteRef.current = false;
+
       if (window.turnstile && widgetIdRef.current !== null) {
         window.turnstile.reset(widgetIdRef.current);
       }
     },
-  }));
+  }), [siteKey]);
 
   useEffect(() => {
     if (!siteKey) return undefined;
 
     let cancelled = false;
+    let script = document.querySelector(
+      `script[src="${SCRIPT_URL}"]`
+    );
 
     const renderWidget = () => {
       if (
@@ -58,47 +79,69 @@ const Captcha = forwardRef(function Captcha(
         return;
       }
 
-      widgetIdRef.current = window.turnstile.render(containerRef.current, {
-  sitekey: siteKey,
-  execution: "execute",
+      try {
+        widgetIdRef.current = window.turnstile.render(
+          containerRef.current,
+          {
+            sitekey: siteKey,
 
-  callback: (token) => {
-    onVerified(token);
-  },
+            // Execute verification only when requested.
+            execution: "execute",
+            appearance: "execute",
 
-  "expired-callback": () => {
-    onError("CAPTCHA expired. Please try again.");
-  },
+            // Do not use size: "invisible".
+            // Invisible-style execution is controlled by appearance.
 
-  "error-callback": () => {
-    onError("CAPTCHA verification failed. Please try again.");
-  },
-});
+            callback: (token) => {
+              onVerifiedRef.current?.(token);
+            },
 
-      if (pendingExecuteRef.current) {
-        pendingExecuteRef.current = false;
-        window.turnstile.execute(widgetIdRef.current);
+            "expired-callback": () => {
+              onErrorRef.current?.(
+                "CAPTCHA expired. Please try again."
+              );
+            },
+
+            "error-callback": () => {
+              onErrorRef.current?.(
+                "CAPTCHA verification failed. Please try again."
+              );
+            },
+          }
+        );
+
+        if (pendingExecuteRef.current) {
+          pendingExecuteRef.current = false;
+          window.turnstile.execute(widgetIdRef.current);
+        }
+      } catch {
+        onErrorRef.current?.(
+          "Unable to initialize security verification."
+        );
       }
     };
 
-    let script = document.querySelector(
-      `script[src="${SCRIPT_URL}"]`
-    );
+    const handleScriptError = () => {
+      if (!cancelled) {
+        onErrorRef.current?.(
+          "Unable to load security verification."
+        );
+      }
+    };
 
     if (window.turnstile) {
       renderWidget();
-    } else if (script) {
-      script.addEventListener("load", renderWidget);
     } else {
-      script = document.createElement("script");
-      script.src = SCRIPT_URL;
-      script.async = true;
-      script.defer = true;
+      if (!script) {
+        script = document.createElement("script");
+        script.src = SCRIPT_URL;
+        script.async = true;
+        script.defer = true;
+        document.head.appendChild(script);
+      }
+
       script.addEventListener("load", renderWidget);
-      script.addEventListener("error", () => {
-        onError?.("Unable to load security verification.");
-      });
-      document.head.appendChild(script);
+      script.addEventListener("error", handleScriptError);
     }
 
     return () => {
@@ -106,6 +149,7 @@ const Captcha = forwardRef(function Captcha(
 
       if (script) {
         script.removeEventListener("load", renderWidget);
+        script.removeEventListener("error", handleScriptError);
       }
 
       if (
@@ -116,8 +160,9 @@ const Captcha = forwardRef(function Captcha(
       }
 
       widgetIdRef.current = null;
+      pendingExecuteRef.current = false;
     };
-  }, [siteKey, onVerified, onError]);
+  }, [siteKey]);
 
   return <div ref={containerRef} aria-hidden="true" />;
 });

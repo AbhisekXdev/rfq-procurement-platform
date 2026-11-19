@@ -99,25 +99,41 @@ export default function Login() {
     }
   };
 
-  const submit = async (event) => {
-    event.preventDefault();
 
-    if (loading || submitting) return;
+const submit = async (event) => {
+  event.preventDefault();
 
-    if (!email.trim() || !password) {
-      notify("Please enter your email and password.", "error");
-      return;
-    }
+  if (loading || submitting) return;
 
-    setSubmitting(true);
+  if (!email.trim() || !password) {
+    notify("Please enter your email and password.", "error");
+    return;
+  }
 
-    try {
-      captchaRef.current?.execute();
-    } catch {
-      setSubmitting(false);
-      notify("Security verification could not start.", "error");
-    }
-  };
+  if (!captchaRef.current) {
+    notify(
+      "Security verification is not ready. Please try again.",
+      "error"
+    );
+    return;
+  }
+
+  setSubmitting(true);
+
+  try {
+    captchaRef.current.execute();
+  } catch (error) {
+    console.error("CAPTCHA execution error:", error);
+
+    setSubmitting(false);
+
+    notify(
+      "Security verification could not start.",
+      "error"
+    );
+  }
+};
+
 
   const activeRole = ROLES.find((item) => item.id === role);
 

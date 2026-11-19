@@ -43,6 +43,7 @@ export default function Register() {
   const [otp, setOtp] = useState("");
   const [expires, setExpires] = useState(null);
 
+  // Update form fields
   const update = (key, value) => {
     setForm((current) => ({
       ...current,
@@ -50,8 +51,25 @@ export default function Register() {
     }));
   };
 
+  // Step 1: Register and send email OTP
   const submit = async (event) => {
     event.preventDefault();
+
+    if (loading) return;
+
+    if (
+      !form.name.trim() ||
+      !form.email.trim() ||
+      !form.password
+    ) {
+      notify("Please complete all required fields.", "error");
+      return;
+    }
+
+    if (form.password.length < 8) {
+      notify("Password must contain at least 8 characters.", "error");
+      return;
+    }
 
     try {
       const data = await register({
@@ -61,20 +79,42 @@ export default function Register() {
       });
 
       setExpires(data.otpExpiresIn);
+      setOtp("");
       setStep("otp");
-      notify("Verification code sent to your email.", "success");
+
+      notify(
+        "Verification code sent to your email.",
+        "success"
+      );
     } catch (error) {
-      notify(error.message, "error");
+      notify(
+        error.message || "Unable to create your account.",
+        "error"
+      );
     }
   };
 
+  // Step 2: Manually verify email OTP
   const verify = async (event) => {
     event.preventDefault();
 
-    try {
-      const data = await verifyRegistration(form.email, otp);
+    if (loading) return;
 
-      notify("Your account has been verified successfully.", "success");
+    if (otp.length !== 6) {
+      notify("Please enter the complete 6-digit OTP.", "error");
+      return;
+    }
+
+    try {
+      const data = await verifyRegistration(
+        form.email.trim().toLowerCase(),
+        otp
+      );
+
+      notify(
+        "Your account has been verified successfully.",
+        "success"
+      );
 
       navigate(
         data.user.role === "ADMIN"
@@ -83,24 +123,44 @@ export default function Register() {
         { replace: true }
       );
     } catch (error) {
-      notify(error.message, "error");
+      notify(
+        error.message || "OTP verification failed.",
+        "error"
+      );
     }
   };
 
+  // Resend email OTP
   const resend = async () => {
+    if (loading) return;
+
     try {
-      const data = await resendRegistrationOtp(form.email);
+      const data = await resendRegistrationOtp(
+        form.email.trim().toLowerCase()
+      );
+
       setExpires(data.otpExpiresIn);
       setOtp("");
-      notify("A new verification code has been sent.", "success");
+
+      notify(
+        "A new verification code has been sent.",
+        "success"
+      );
     } catch (error) {
-      notify(error.message, "error");
+      notify(
+        error.message || "Unable to resend verification code.",
+        "error"
+      );
     }
   };
 
   return (
     <AuthLayout
-      title={step === "form" ? "Create your account" : "Verify your email"}
+      title={
+        step === "form"
+          ? "Create your account"
+          : "Verify your email"
+      }
       mode="REGISTER"
     >
       <div className="animate-auth-in space-y-6">
@@ -124,6 +184,7 @@ export default function Register() {
 
             <form onSubmit={submit} className="space-y-5">
 
+              {/* Account Role */}
               <div>
                 <label className="mb-3 block text-sm font-bold text-slate-800">
                   I want to join as
@@ -152,31 +213,40 @@ export default function Register() {
                 </div>
               </div>
 
+              {/* Full Name */}
               <Input
                 label="Full name"
                 value={form.name}
-                onChange={(event) => update("name", event.target.value)}
+                onChange={(event) =>
+                  update("name", event.target.value)
+                }
                 placeholder="Enter your full name"
                 autoComplete="name"
                 required
               />
 
+              {/* Email */}
               <Input
                 label="Email address"
                 type="email"
                 value={form.email}
-                onChange={(event) => update("email", event.target.value)}
+                onChange={(event) =>
+                  update("email", event.target.value)
+                }
                 placeholder="you@company.com"
                 autoComplete="email"
                 required
               />
 
+              {/* Password */}
               <div className="space-y-2">
                 <Input
                   label="Create password"
                   type={showPassword ? "text" : "password"}
                   value={form.password}
-                  onChange={(event) => update("password", event.target.value)}
+                  onChange={(event) =>
+                    update("password", event.target.value)
+                  }
                   placeholder="At least 8 characters"
                   autoComplete="new-password"
                   minLength={8}
@@ -187,42 +257,59 @@ export default function Register() {
                   <input
                     type="checkbox"
                     checked={showPassword}
-                    onChange={(event) => setShowPassword(event.target.checked)}
+                    onChange={(event) =>
+                      setShowPassword(event.target.checked)
+                    }
                     className="h-4 w-4 rounded accent-blue-600"
                   />
                   Show password
                 </label>
               </div>
 
+              {/* Email Verification Notice */}
               <div className="flex items-start gap-3 rounded-xl border border-emerald-100 bg-emerald-50/70 p-3">
-                <FiShield className="mt-0.5 shrink-0 text-emerald-600" size={18} />
+                <FiShield
+                  className="mt-0.5 shrink-0 text-emerald-600"
+                  size={18}
+                />
+
                 <p className="text-xs leading-5 text-slate-600">
                   Your email will be verified through a one-time password.
                   Your account will be activated after successful verification.
                 </p>
               </div>
 
-              <Button type="submit" loading={loading} disabled={loading}>
+              <Button
+                type="submit"
+                loading={loading}
+                disabled={loading}
+              >
                 <span className="flex items-center justify-center gap-2">
-                  Create account <FiArrowRight size={17} />
+                  Create account
+                  <FiArrowRight size={17} />
                 </span>
               </Button>
             </form>
 
+            {/* Login Link */}
             <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-center">
               <p className="text-sm text-slate-500">
                 Already have an account?
               </p>
+
               <Link
                 to="/login"
                 className="mt-2 inline-flex items-center gap-2 text-sm font-extrabold text-blue-600 transition hover:gap-3"
               >
-                Sign in <FiArrowRight />
+                Sign in
+                <FiArrowRight />
               </Link>
             </div>
           </>
         ) : (
+          /* Manual OTP Verification */
           <form onSubmit={verify} className="space-y-5">
+
             <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-5">
               <div className="flex items-start gap-3">
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white text-emerald-600 shadow-sm">
@@ -233,6 +320,7 @@ export default function Register() {
                   <p className="font-extrabold text-slate-900">
                     Check your inbox
                   </p>
+
                   <p className="mt-1 break-all text-xs leading-5 text-slate-600">
                     We sent a verification code to{" "}
                     <strong>{form.email}</strong>
@@ -241,11 +329,15 @@ export default function Register() {
               </div>
             </div>
 
+            {/* Account Information */}
             <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-center">
               <p className="text-xs text-slate-500">
                 Account type:{" "}
-                <strong className="text-slate-800">{form.role}</strong>
+                <strong className="text-slate-800">
+                  {form.role}
+                </strong>
               </p>
+
               {expires && (
                 <p className="mt-1 text-xs text-slate-500">
                   OTP validity:{" "}
@@ -256,19 +348,25 @@ export default function Register() {
               )}
             </div>
 
+            {/* OTP Input */}
             <Input
               label="6-digit verification code"
               inputMode="numeric"
               autoComplete="one-time-code"
               value={otp}
               onChange={(event) =>
-                setOtp(event.target.value.replace(/\D/g, "").slice(0, 6))
+                setOtp(
+                  event.target.value
+                    .replace(/\D/g, "")
+                    .slice(0, 6)
+                )
               }
               placeholder="000000"
               maxLength={6}
               required
             />
 
+            {/* Verify Button */}
             <Button
               type="submit"
               loading={loading}
@@ -280,6 +378,7 @@ export default function Register() {
               </span>
             </Button>
 
+            {/* Resend and Edit */}
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <button
                 type="button"
@@ -302,8 +401,10 @@ export default function Register() {
               </button>
             </div>
 
+            {/* Security Notice */}
             <div className="flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
               <FiShield className="mt-0.5 shrink-0 text-emerald-600" />
+
               <p className="text-xs leading-5 text-slate-500">
                 Never share your verification code with anyone.
               </p>
@@ -315,6 +416,7 @@ export default function Register() {
   );
 }
 
+// Role Selection Card
 function RoleCard({
   selected,
   title,
@@ -343,7 +445,11 @@ function RoleCard({
         group relative flex min-h-[178px] flex-col items-start
         rounded-2xl border p-4 text-left transition-all duration-300
         hover:-translate-y-1 hover:shadow-lg active:scale-[.98]
-        ${selected ? selectedClass : "border-slate-200 bg-white hover:border-slate-300"}
+        ${
+          selected
+            ? selectedClass
+            : "border-slate-200 bg-white hover:border-slate-300"
+        }
       `}
     >
       {selected && (
@@ -353,17 +459,29 @@ function RoleCard({
         />
       )}
 
-      <div className={`
-        mb-4 flex h-11 w-11 items-center justify-center
-        rounded-xl shadow-sm transition-transform duration-300
-        group-hover:scale-110
-        ${selected ? iconClass : "bg-slate-100 text-slate-500"}
-      `}>
+      <div
+        className={`
+          mb-4 flex h-11 w-11 items-center justify-center
+          rounded-xl shadow-sm transition-transform duration-300
+          group-hover:scale-110
+          ${
+            selected
+              ? iconClass
+              : "bg-slate-100 text-slate-500"
+          }
+        `}
+      >
         {icon}
       </div>
 
-      <p className="text-base font-extrabold text-slate-900">{title}</p>
-      <p className="mt-1 text-xs font-bold text-blue-600">{subtitle}</p>
+      <p className="text-base font-extrabold text-slate-900">
+        {title}
+      </p>
+
+      <p className="mt-1 text-xs font-bold text-blue-600">
+        {subtitle}
+      </p>
+
       <p className="mt-2 text-[11px] leading-5 text-slate-500">
         {description}
       </p>
